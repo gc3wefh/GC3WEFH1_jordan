@@ -1,0 +1,16 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-64
+streamlit
+pandas
+geopandas
+folium
+streamlit_folium
+numpy
+scipy
+pandasai
+google-generativeai
+pyyaml
+fuzzywuzzy
+mapclassify
+numba
