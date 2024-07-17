@@ -100,11 +100,11 @@ with tab1:
 
     # Choose map type with dropdown
     col1, col2, col3 = st.columns(3)
-    map_type_choice = col1.selectbox("Choose a Topic", ["", "Household", "Climate","Healthcare","Administrative"])
-    if map_type_choice in ["Household"]:
-        map_choice1 = col2.selectbox("Choose a Dataset", ["", "Jordan Population Average Statistics By State", "Jordan Population Average Statistics"])
+    map_type_choice = col1.selectbox("Choose a Topic", ["Population", "Climate","Healthcare","Administrative"])
+    if map_type_choice in ["Population"]:
+        map_choice1 = col2.selectbox("Choose a Dataset", ["Population Average Statistics By Governorate", "Jordan Population Average Statistics"])
         # Display other functionalities only if a map type is selected
-        if map_choice1 in ["Jordan Population Average Statistics By State", "Jordan Population Average Statistics"]:
+        if map_choice1 in ["Population Average Statistics By Governorate", "Jordan Population Average Statistics"]:
             # Function to read, clean, and merge data
             def prepare_data(csv_path, shp_path):
                 csv_data = pd.read_csv(csv_path)
@@ -137,7 +137,7 @@ with tab1:
                 return m
 
             # Generate gdf and ID name reference table
-            if map_choice1 == "Jordan Population Average Statistics By State":
+            if map_choice1 == "Population Average Statistics By Governorate":
                 gdf_jstates, id_name_df = prepare_data("dataset/Average Household Size in Jordan/governorate.csv", "jordan_admin_regions.shp")
                 gdf = gdf_jstates
             elif map_choice1 == "Jordan Population Average Statistics":
@@ -171,7 +171,7 @@ with tab1:
             # Display map when 'Generate Map' button is clicked
             # if generate_map:
             # with household_map_col1:
-            if map_choice1 == "Jordan Population Average Statistics By State":
+            if map_choice1 == "Population Average Statistics By Governorate":
                 map_to_display = create_map(filtered_gdf, selected_column)
             elif map_choice1 == "Jordan Population Average Statistics":
                 map_to_display = create_map(gdf_jordan, selected_column)
@@ -278,8 +278,8 @@ with tab1:
 
 
     if map_type_choice in ["Healthcare"]:
-        map_choice3 = col2.selectbox("Choose a Dataset", ["", "Healthcare Facilities in Jordan","Jordan Health","Jordan Health Map"])  
-        if map_choice3 in ["Healthcare Facilities in Jordan"]:
+        map_choice3 = col2.selectbox("Choose a Dataset", ["Healthcare Facilities","Hospitals","Health Activities and Projects"])  
+        if map_choice3 in ["Healthcare Facilities"]:
             def load_data(csv_path):
                 data = pd.read_csv(csv_path)
                 return data
@@ -334,7 +334,7 @@ with tab1:
                 df_filtered = df_filtered.iloc[:, index_cols]
                 st.dataframe(df_filtered)
         
-        if map_choice3 in ["Jordan Health"]:
+        if map_choice3 in ["Hospitals"]:
             def prepare_data(csv_path, shp_path):
                 csv_data = pd.read_csv(csv_path)
                 shp_data = gpd.read_file(shp_path)
@@ -370,7 +370,7 @@ with tab1:
             gdf1 = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.Longitude, df.Latitude))
 
             hospital_col1, hospital_col2 = st.columns([1,1])
-            filter_values = hospital_col1.multiselect("Filter Map by Governorat", df['Governorat'].unique(), default=df['Governorat'].unique())
+            filter_values = hospital_col1.multiselect("Filter Map by Governorate", df['Governorat'].unique(), default=df['Governorat'].unique())
             if filter_values:
                 df_filtered = df[df['Governorat'].isin(filter_values)].copy()
                 gdf_filtered = gdf1[gdf1['Governorat'].isin(filter_values)].copy()
@@ -380,7 +380,7 @@ with tab1:
 
             tooltip_options = hospital_col2.multiselect('Columns Displayed In ToolTip', df_filtered.columns, default=list(df_filtered.columns))
 
-            generate_map = st.button("Generate Map")
+            # generate_map = st.button("Generate Map")
 
             map_gdf = create_map(gdf_filtered, 'Governorat', tooltip_options)
             folium_static(map_gdf)
@@ -392,7 +392,7 @@ with tab1:
                 df_filtered = df_filtered.iloc[:, index_cols]
                 st.dataframe(df_filtered)
 
-        if map_choice3 in ["Jordan Health Map"]:
+        if map_choice3 in ["Health Activities and Projects"]:
             def prepare_data(csv_path, shp_path):
                 csv_data = pd.read_csv(csv_path)
                 shp_data = gpd.read_file(shp_path)
@@ -437,7 +437,7 @@ with tab1:
 
             tooltip_options = hospital_col2.multiselect('Columns Displayed In ToolTip', df_filtered.columns, default=list(df_filtered.columns))
 
-            generate_map = st.button("Generate Map")
+            # generate_map = st.button("Generate Map")
 
             map_gdf = create_map(gdf_filtered, 'Governorat', tooltip_options)
             folium_static(map_gdf)
@@ -451,10 +451,10 @@ with tab1:
 
     if map_type_choice in ["Administrative"]:
 
-        map_choice1 = col2.selectbox("Choose a Dataset", ["Please select a map type", "Boundaries of Jordan States", "Boundaries of Jordan","Soviet"])
-        # map_choice1 = col2.selectbox("Choose a Dataset", ["Please select a map type", "Boundaries of Jordan States", "Boundaries of Jordan","Soviet","Jordan Purchasing Power per Capita","Jordan Purchasing Power"])
+        map_choice1 = col2.selectbox("Choose a Dataset", ["Boundaries of Governorates", "Boundaries of Jordan"])
+        # map_choice1 = col2.selectbox("Choose a Dataset", ["Boundaries of Governorates", "Boundaries of Jordan","Jordan Purchasing Power per Capita","Jordan Purchasing Power"])
         # Display other functionalities only if a map type is selected
-        if map_choice1 in ["Boundaries of Jordan States", "Boundaries of Jordan"]:
+        if map_choice1 in ["Boundaries of Governorates", "Boundaries of Jordan"]:
             # Function to read, clean, and merge data
             def prepare_data(csv_path, shp_path):
                 csv_data = pd.read_csv(csv_path)
@@ -505,7 +505,7 @@ with tab1:
                 # return m
 
             # Generate gdf and ID name reference table
-            if map_choice1 in ["Boundaries of Jordan States"]:
+            if map_choice1 in ["Boundaries of Governorates"]:
                 gdf_jstates = prepare_data("dataset/Jordan Boundaries/governorate.csv", "jordan_admin_regions.shp")
                 # gdf_jstates, id_name_df = prepare_data("dataset/Jordan Boundaries/governorate.csv", "jordan_admin_regions.shp")
                 gdf = gdf_jstates
@@ -529,7 +529,7 @@ with tab1:
             columns_not_geometry = [x for x in gdf_filtered.columns if x != 'geometry'][16:]
             tooltip_options = boundary_col2.multiselect('Columns Displayed In ToolTip', columns_not_geometry, default=list(columns_not_geometry))
 
-            generate_map = st.button("Generate Map")
+            # generate_map = st.button("Generate Map")
 
             map_gdf = create_map(gdf_filtered, map_column, tooltip_options)
             folium_static(map_gdf)
@@ -818,7 +818,7 @@ with tab2:
     # Display the data
 
     if 'df' in st.session_state and 'selected_dataset' in st.session_state:
-        preview_txt = 'Data Information'
+        preview_txt = 'Data Table (5 sample records)'
         if 'dataset_type' in st.session_state and st.session_state.dataset_type == 'WHO':
             preview_txt = "Dataset Information"
 
@@ -868,5 +868,3 @@ with tab2:
                 answer = generateResponse(dataFrame=st.session_state.df,prompt=prompt_input)
                 st.write(answer)
                 # 'If the user wants to map a dataset, use the geopandas function explore. Here is an example: geopandas.explore(df)' + \
-
-
