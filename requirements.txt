@@ -1,16 +1,16 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: osx-64
-streamlit
-pandas
-geopandas
-folium
-streamlit_folium
+streamlit == 1.38.0
+pandas == 2.2.2
+geopandas == 1.0.1
+folium == 0.17.0
+streamlit_folium == 0.22.0
 numpy == 1.26.4
-scipy
-pandasai
+scipy == 1.14.1
+pandasai == 2.0.24
 google-generativeai
-pyyaml
-fuzzywuzzy
-mapclassify
-numba
+pyyaml == 6.0.2
+fuzzywuzzy == 0.18.0
+mapclassify == 2.8.0
+numba == 0.60.0
