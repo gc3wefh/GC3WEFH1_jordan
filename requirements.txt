@@ -6,7 +6,7 @@ pandas
 geopandas
 folium
 streamlit_folium
-numpy
+numpy == 1.26.4
 scipy
 pandasai
 google-generativeai
