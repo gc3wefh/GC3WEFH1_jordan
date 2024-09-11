@@ -90,10 +90,7 @@ if 'df' in locals():
             f"Variable X has a mean of {x_mean:.2f} and a standard deviation of {x_sd:.2f}, "
             f"while Variable Y has a mean of {y_mean:.2f} and a standard deviation of {y_sd:.2f}. "
             f"Can you describe the relationship between these variables? "
-            f"Additionally, for distribution analysis, Variable X has a skewness of {x_skew:.2f} "
-            f"and there are {x_outliers} potential outliers. "
-            f"Variable Y has a skewness of {y_skew:.2f} and there are {y_outliers} potential outliers. "
-            f"Please describe the distribution of both variables, identify any sharp spikes, and discuss possible outliers."
+            f"Please do not generate any images, code, or visual outputs, and only provide a text-based analysis."
         )
 
         # Generate LLM response
@@ -102,8 +99,6 @@ if 'df' in locals():
         # Display LLM response
         st.write("### LLM-Generated Description:")
         st.write(llm_response)
-
-
 
     # Scatterplot with regression line
     st.subheader("Scatterplot with Regression Line")
@@ -115,6 +110,36 @@ if 'df' in locals():
         st.pyplot(fig)
     else:
         st.error("X and Y variables must be different!")
+
+    # **Scatter Matrix Section with LLM Analysis**
+    st.subheader("Scatter Matrix")
+    selected_vars = st.multiselect("Select up to 5 variables for scatter matrix", numeric_vars, numeric_vars[:5])
+
+    if selected_vars:
+        scatter_matrix_df = df[selected_vars]
+        scatter_matrix_fig = pd.plotting.scatter_matrix(scatter_matrix_df, alpha=0.2, figsize=(10, 10), diagonal='kde')
+        
+        for ax in scatter_matrix_fig.ravel():
+            ax.set_xlabel(ax.get_xlabel(), fontsize=10, rotation=90)
+            ax.set_ylabel(ax.get_ylabel(), fontsize=10, rotation=0)
+        
+        st.pyplot(plt)
+
+        # Generate a prompt for the LLM to analyze the scatter matrix
+        prompt = (
+            f"A scatter matrix has been generated for the variables {', '.join(selected_vars)}. "
+            f"Please provide insights on the relationships between these variables. "
+            f"Are there any strong correlations, clusters, or patterns? "
+            f"Do you observe any outliers or unusual distributions in these pairwise plots?"
+            f"Please do not generate any images, code, or visual outputs, and only provide a text-based analysis."
+        )
+        
+        # Generate LLM response for scatter matrix analysis
+        llm_response_scatter_matrix = generate_llm_response(df[selected_vars], prompt)
+        
+        # Display LLM response for scatter matrix
+        st.write("### LLM-Generated Analysis for Scatter Matrix:")
+        st.write(llm_response_scatter_matrix)
 
     # Descriptive statistics
     st.subheader("Descriptive Statistics")
@@ -139,17 +164,22 @@ if 'df' in locals():
         ax.set_xlabel(selected_stat_var)
         st.pyplot(fig)
 
-    # **Scatter Matrix Section**
-    st.subheader("Scatter Matrix")
-    selected_vars = st.multiselect("Select up to 5 variables for scatter matrix", numeric_vars, numeric_vars[:5])
+        # Generate LLM prompt for statistics
+        prompt = (
+            f"The selected variable is {selected_stat_var}. "
+            f"It has a mean of {vmean:.2f}, a standard deviation of {vsd:.2f}, a variance of {vvar:.2f}, "
+            f"and a skewness of {vskew:.2f}."
+            f"Please describe the distribution of the variable, identify any sharp spikes, and discuss possible outliers."
+            f"Please do not generate any images, code, or visual outputs, and only provide a text-based analysis."
+            
+        )
 
-    if selected_vars:
-        scatter_matrix_df = df[selected_vars]
-        scatter_matrix_fig = pd.plotting.scatter_matrix(scatter_matrix_df, alpha=0.2, figsize=(10, 10), diagonal='kde')
-        for ax in scatter_matrix_fig.ravel():
-            ax.set_xlabel(ax.get_xlabel(), fontsize=10, rotation=90)
-            ax.set_ylabel(ax.get_ylabel(), fontsize=10, rotation=0)
-        st.pyplot(plt)
+        # Generate LLM response for descriptive statistics
+        llm_response_stats = generate_llm_response(df, prompt)
+        
+        # Display LLM response for descriptive statistics
+        st.write("### LLM-Generated Description for Descriptive Statistics:")
+        st.write(llm_response_stats)
 
 else:
     st.write("Please select a dataset or upload a CSV file to proceed.")
