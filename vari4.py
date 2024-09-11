@@ -71,25 +71,29 @@ if 'df' in locals():
     # Select numeric variables for LLM description
     x_var = st.selectbox("Select X variable", numeric_vars)
     y_var = st.selectbox("Select Y variable", numeric_vars)
-  
+    
     if x_var and y_var and x_var != y_var:
-        # Calculate descriptive statistics
+        # Calculate descriptive statistics for relationship
         corr = df[[x_var, y_var]].corr().iloc[0, 1]
         x_mean, y_mean = df[x_var].mean(), df[y_var].mean()
         x_sd, y_sd = df[x_var].std(), df[y_var].std()
+
+        # Calculate additional statistics for distribution and outliers
         x_skew, y_skew = df[x_var].skew(), df[y_var].skew()
         x_outliers = df[x_var][(df[x_var] > (x_mean + 2 * x_sd)) | (df[x_var] < (x_mean - 2 * x_sd))].count()
         y_outliers = df[y_var][(df[y_var] > (y_mean + 2 * y_sd)) | (df[y_var] < (y_mean - 2 * y_sd))].count()
         
-        # Create an enhanced prompt for LLM
+        # Combine the relationship analysis with distribution, spikes, and outliers in the prompt
         prompt = (
             f"Variable X represents {x_var} and Variable Y represents {y_var}. "
             f"The Pearson correlation coefficient between them is {corr:.2f}. "
             f"Variable X has a mean of {x_mean:.2f} and a standard deviation of {x_sd:.2f}, "
-            f"with skewness of {x_skew:.2f}. There are {x_outliers} potential outliers in Variable X. "
-            f"Variable Y has a mean of {y_mean:.2f}, a standard deviation of {y_sd:.2f}, "
-            f"and a skewness of {y_skew:.2f}. There are {y_outliers} potential outliers in Variable Y. "
-            f"Can you describe the distribution, identify any sharp spikes, and discuss the potential outliers?"
+            f"while Variable Y has a mean of {y_mean:.2f} and a standard deviation of {y_sd:.2f}. "
+            f"Can you describe the relationship between these variables? "
+            f"Additionally, for distribution analysis, Variable X has a skewness of {x_skew:.2f} "
+            f"and there are {x_outliers} potential outliers. "
+            f"Variable Y has a skewness of {y_skew:.2f} and there are {y_outliers} potential outliers. "
+            f"Please describe the distribution of both variables, identify any sharp spikes, and discuss possible outliers."
         )
 
         # Generate LLM response
@@ -98,6 +102,7 @@ if 'df' in locals():
         # Display LLM response
         st.write("### LLM-Generated Description:")
         st.write(llm_response)
+
 
 
     # Scatterplot with regression line
