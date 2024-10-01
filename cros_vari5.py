@@ -6,7 +6,7 @@ import seaborn as sb
 import geopandas as gpd
 import sweetviz as sv
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import VarianceThreshold
 from scipy import stats
 from pandasai.llm import GoogleGemini
@@ -53,6 +53,23 @@ datasets = {
     'governorate_boundaries_csv': 'dataset/Jordan Boundaries/governorate.csv',
     'country_boundaries_csv': 'dataset/Jordan Boundaries/country.csv'
 }
+
+# **How to Pick Datasets for Analysis Section**
+st.subheader("How to Pick Datasets for Analysis")
+st.write("""
+    Below are descriptions of each dataset to help you decide which one is suitable for your analysis:
+    1. **jordan_indicadors.csv**: This dataset contains various socio-economic indicators for Jordan.
+    2. **governorate.csv**: Contains data about household sizes, population densities, and more at the governorate level in Jordan.
+    3. **country.csv**: National-level data for Jordan, similar to the governorate dataset but aggregated for the entire country.
+    4. **spi_data.csv**: A dataset on Social Progress Index (SPI) metrics collected for Jordan.
+    5. **healthcare_facilities.csv**: Information about healthcare facilities in Jordan, including capacity and services provided.
+    6. **governorates_jordan.csv**: Population statistics for governorates in Jordan, including gender distribution and other demographic data.
+    7. **hospitals.csv**: Details about hospital facilities, bed counts, and patient admission rates in Jordan.
+    8. **governorate_boundaries.csv**: Geographical boundaries of Jordan’s governorates.
+    9. **country_boundaries.csv**: Geographical boundaries of the entire country of Jordan.
+    
+    Use this information to select datasets based on your analysis needs, such as demographic analysis, healthcare facility assessment, or geographic data exploration.
+""")
 
 # 1. Dataset Selection and Upload
 st.subheader("Select predefined datasets or upload your own")
