@@ -3,12 +3,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sb
+import geopandas as gpd
 from pandasai.llm import GoogleGemini
 from pandasai import SmartDataframe
 import os
 
 # LLM integration (Google Gemini setup)
-gemini_api_key = os.environ.get('gemini')  # Make sure your API key is stored as an environment variable
+gemini_api_key = os.environ.get('gemini')  # Ensure your API key is stored as an environment variable
 llm = GoogleGemini(api_key=gemini_api_key)
 
 def generate_llm_response(dataFrame, prompt):
@@ -43,27 +44,36 @@ def load_csv_dataset(path):
 def load_geodataframe(path):
     return gpd.read_file(path)
 
-# Dropdown to select a dataset from predefined datasets
-st.subheader("Select a predefined dataset or upload your own")
-dataset_choice = st.selectbox("Choose a Dataset", ["None"] + list(datasets.keys()))
+# Allow user to select multiple datasets
+st.subheader("Select predefined datasets or upload your own")
+selected_datasets = st.multiselect("Choose Datasets", list(datasets.keys()))
 
-# Upload a custom CSV file
-uploaded_file = st.file_uploader("Or upload a CSV file", type="csv")
+# Upload custom CSV files
+uploaded_files = st.file_uploader("Or upload CSV files", type="csv", accept_multiple_files=True)
 
-# Load selected dataset
-if dataset_choice != "None":
-    # Load from predefined datasets
-    if dataset_choice in datasets:
-        df = load_csv_dataset(datasets[dataset_choice])
-else:
-    # Load from uploaded file
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
+# Dictionary to store dataframes
+dataframes = {}
 
-# Proceed if a dataset is loaded
-if 'df' in locals():
-    # Filter for numeric variables
-    numeric_vars = [col for col in df.columns if df[col].dtype in [np.float64, np.int64]]
+# Load selected predefined datasets
+for dataset_choice in selected_datasets:
+    dataframes[dataset_choice] = load_csv_dataset(datasets[dataset_choice])
+
+# Load uploaded CSV files
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        dataframes[uploaded_file.name] = pd.read_csv(uploaded_file)
+
+# Proceed if any dataset is loaded
+if dataframes:
+    # Combine numeric variables from all datasets
+    all_numeric_vars = {}
+    for name, df in dataframes.items():
+        numeric_vars = [col for col in df.columns if df[col].dtype in [np.float64, np.int64]]
+        all_numeric_vars[name] = numeric_vars
+
+    # Flatten and present the combined list of numeric variables for selection
+    st.subheader("Numeric Variables Across Datasets:")
+    variable_options = [(f"{name} - {var}", name, var) for name, vars_list in all_numeric_vars.items() for var in vars_list]
 
     # **LLM Interaction Section**
     st.subheader("Ask LLM to Describe the Relationship Between Two Variables")
