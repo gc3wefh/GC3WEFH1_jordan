@@ -9,6 +9,17 @@ from sklearn.feature_selection import VarianceThreshold
 from scipy import stats
 import tempfile
 
+# Downcast numerical columns
+def downcast_numeric_columns(df):
+    # Downcast integer columns
+    for col in df.select_dtypes(include=['int']).columns:
+        df[col] = pd.to_numeric(df[col], downcast='integer')
+    # Downcast float columns
+    for col in df.select_dtypes(include=['float']).columns:
+        df[col] = pd.to_numeric(df[col], downcast='float')
+    return df
+
+
 # Define a Streamlit app
 st.title("ML Readiness App with Key Feature Insights")
 
@@ -39,6 +50,24 @@ if uploaded_file is not None:
         'Missing Values': missing_values,
         'Missing Percentage (%)': (missing_values / len(df)) * 100
     })
+
+    # Show missing values in a more detailed and clear way
+    st.dataframe(missing_data.style.format({"Missing Percentage (%)": "{:.2f}"}).background_gradient(cmap='Reds', subset=["Missing Values"]))
+
+    # Apply the downcast function to the DataFrame
+    print(f'dtypes before: {df.dtypes}')
+    downcast_numeric_columns(df)
+    print(f'dtypes after: {df.dtypes}')
+
+    # Calculate missing values per column
+    missing_values = df.isnull().sum()
+    missing_data = pd.DataFrame({
+        'Data Type': df.dtypes,
+        'Missing Values': missing_values,
+        'Missing Percentage (%)': (missing_values / len(df)) * 100
+    })
+
+    st.write("After downcasting data types:")
 
     # Show missing values in a more detailed and clear way
     st.dataframe(missing_data.style.format({"Missing Percentage (%)": "{:.2f}"}).background_gradient(cmap='Reds', subset=["Missing Values"]))
