@@ -81,6 +81,7 @@ def show_dtypes_and_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
     })
     return missing_data_df
 
+@st.cache_data
 def encode_categorical(df: pd.DataFrame) -> pd.DataFrame:
     """Encodes categorical columns using OneHotEncoder
 
@@ -108,6 +109,7 @@ def encode_categorical(df: pd.DataFrame) -> pd.DataFrame:
 
     return encoded_df
 
+@st.cache_data
 def get_df_density(df : pd.DataFrame) -> float:
     """Get density of a Dataframe that contains mixed regular and sparse data.
 
@@ -131,6 +133,7 @@ def get_df_density(df : pd.DataFrame) -> float:
     
     return float(non_sparse_elems / total_elems)
 
+@st.cache_data
 def get_top_n_rows(df: pd.DataFrame, top_n : int) -> pd.DataFrame:
     """Get the top N rows of a Dataframe.
 
@@ -166,6 +169,31 @@ def get_top_n_rows(df: pd.DataFrame, top_n : int) -> pd.DataFrame:
         print(f"Warning: Sparse columns still present: {remaining_sparse_cols}")
 
     return df_topN
+
+def scaler_transform(df: pd.DataFrame) -> pd.DataFrame:
+    """Scales a DataFrame using StandardScaler
+    
+    A DataFrame that may have mixed sparse and regular columns is scaled.
+    Scaling can only be done on non-categorical columns i.e. non-sparse columns
+
+    Args:
+        df: Input DataFrame that may have mixed sparse and regular column types.
+
+    Returns:
+        New DataFrame that is a scaled version of the input DataFrame.
+    """
+    scaler = StandardScaler()
+    df_scaled = df.copy()
+    # Get non-categorical columns
+    non_categorical_cols = [col for col in df.columns if not isinstance(df[col].dtype, pd.SparseDtype)]
+    df_scaled[non_categorical_cols] = scaler.fit_transform(df_scaled[non_categorical_cols])
+    return df_scaled
+
+def describe_numerical(df: pd.DataFrame) -> pd.DataFrame:
+    print("Printing df", df)
+    numerical_cols = [col for col in df.columns if not isinstance(df[col].dtype, pd.SparseDtype)]
+    print("Printing df[numericals_cols]", df[numerical_cols])
+    return df[numerical_cols].describe()
 
 def main():
     # Define a Streamlit app
@@ -290,37 +318,36 @@ def main():
         # 8.2 Encoding Categorical Variables
         st.subheader("Step 2: Encoding Categorical Variables")
 
-        # Skip this step until needed again or found solution for large datasets
-        encoded_categoricals = encode_categorical(working_df)
-        print(f"Printing data type of encoded_categoricals: {type(encoded_categoricals)}")
+        working_df = encode_categorical(working_df)
 
         st.write("Categorical variables encoded.")
-        st.write("Non-zero elements: ", encoded_categoricals.notna().sum().sum())
-        st.write("Density:", get_df_density(encoded_categoricals))
+        st.write("Non-zero elements: ", working_df.notna().sum().sum())
+        st.write("Density:", get_df_density(working_df))
+
 
         top_n = 5
-        top_values = get_top_n_rows(encoded_categoricals, top_n)
+        top_values = get_top_n_rows(working_df, top_n)
         st.write("Top", top_n, "rows:")
         st.dataframe(top_values)
-        st.write("Here's the dataset before encoding:")
-        st.write(working_df.head())
 
         # 8.3 Feature Scaling
         st.subheader("Step 3: Scaling Features")
-        scaler = StandardScaler()
 
         # Before scaling, show the mean and standard deviation of numerical columns
         st.write("Feature Statistics Before Scaling:")
-        st.write(working_df.describe())
+        print(working_df.dtypes)
+        st.write(describe_numerical(working_df))
 
-        working_df = pd.DataFrame(scaler.fit_transform(working_df), columns=working_df.columns)
+        working_df = scaler_transform(working_df)
 
         # After scaling, show the mean and standard deviation
         st.write("Feature Statistics After Scaling (Mean ~0, Std Dev ~1):")
-        st.write(working_df.describe())
+        st.write(describe_numerical(working_df))
 
         st.write("Features scaled. Here's the updated dataset:")
-        st.write(working_df.head())
+        top_values = get_top_n_rows(working_df, top_n)
+        st.write("Top", top_n, "rows:")
+        st.dataframe(top_values)
 
         # 8.4 Removing Low Variance Features
         st.subheader("Step 4: Removing Low Variance Features")
