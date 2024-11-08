@@ -24,9 +24,14 @@ import tempfile
 from pandasai.llm import GoogleGemini
 from pandasai import SmartDataframe
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load env vars from .env file
+
+# Set the api key from environment variable
+gemini_api_key = os.environ.get('gemini')  # Make sure your API key is stored as an environment variable
 
 # LLM Integration
-gemini_api_key = os.environ.get('gemini')  # Make sure your API key is stored as an environment variable
 llm = GoogleGemini(api_key=gemini_api_key)
 
 def generate_llm_response(dataFrame, prompt):
@@ -307,27 +312,95 @@ def main():
         ## 8.1 Handling Missing Values
         st.subheader("Step 1: Handling Missing Values")
 
-        ### Impute missing values for numerical features with mean
-        numerical_features = working_df.select_dtypes(
-            include=[np.number]
-        ).columns.tolist()
-        imputer_num = SimpleImputer(strategy='mean')
-        working_df[numerical_features] = imputer_num.fit_transform(working_df[numerical_features])
-
-        ### Impute missing values for categorical features with the most frequent value
-        categorical_columns = working_df.select_dtypes(include=['object', 'category']).columns
-        categorical_features = categorical_columns.tolist()
-        imputer_cat = SimpleImputer(strategy='most_frequent')
-        working_df[categorical_features] = imputer_cat.fit_transform(working_df[categorical_features])
-
-        st.write(
-            "Missing values handled. Here's a preview of the updated dataset "
-            f"{working_df.shape}:"
+        # Combine the relationship analysis with distribution, spikes, and outliers in the prompt
+        prompt = (
+            "Numerical features contain quantitative values that represent some "
+            "form of measurement, count, or value and can be mathematically manipulated. "
+            "They commonly include integers and floating-point numbers. Some "
+            "examples are continous data, like age, height, and temperature, or "
+            "discrete data, like number of items sold or scores."
+            "Categorical features contain values that represent categories or "
+            "groups and often have no intrinsic mathematical meaning. They are "
+            "usually represented as strings or integers that act as labels. They "
+            "can be nominal, meaning categories without a natural order (e.g., "
+            "gender, city name) or ordinal, meaning categories with a meaningful "
+            "order but no fixed distance between categories (e.g., education "
+            "levels like \"High School\", \"Bachelor's\", \"Master's\". Examples "
+            "include binary data, like \"yes\"/\"no\" or \"true\"/\"false\", or "
+            "multiclass categories, such as car brands, types of cuisine, or countries.)"
+            "Impute missing values for numerical features with the mean and "
+            "impute missing values for categorical features with the most frequent value."
+            "Return the dataframe after imputing missing values."
         )
-        st.write(working_df.head())
+
+        st.write("##### LLM Prompt")
+        st.write(prompt)
+
+        st.write('##### Dataframe before LLM')
+        st.write(working_df)
+        # Generate LLM response
+        llm_response = generate_llm_response(working_df, prompt)
+        
+        # Display LLM response
+        st.write("### LLM-Generated Description:")
+        st.write(llm_response)
+
+        # ### Impute missing values for numerical features with mean
+        # numerical_features = working_df.select_dtypes(
+        #     include=[np.number]
+        # ).columns.tolist()
+        # imputer_num = SimpleImputer(strategy='mean')
+        # working_df[numerical_features] = imputer_num.fit_transform(working_df[numerical_features])
+
+        # ### Impute missing values for categorical features with the most frequent value
+        # categorical_columns = working_df.select_dtypes(include=['object', 'category']).columns
+        # categorical_features = categorical_columns.tolist()
+        # imputer_cat = SimpleImputer(strategy='most_frequent')
+        # working_df[categorical_features] = imputer_cat.fit_transform(working_df[categorical_features])
+
+        # st.write(
+        #     "Missing values handled. Here's a preview of the updated dataset "
+        #     f"{working_df.shape}:"
+        # )
+        # st.write(working_df.head())
 
         # 8.2 Encoding Categorical Variables
         st.subheader("Step 2: Encoding Categorical Variables")
+
+        # df_string = working_df.to_string()
+        # # Define categorical features
+        # prompt = (
+        #     "Identify and encode all categorical columns in the DataFrame, including those "
+        #     "with 'ID' in their names or that represent identifiers (even if stored as float64). "
+        #     "For columns with fewer unique values than 10% of the total rows, assume they are categorical. "
+        #     f"Apply 'One Hot' encoding. "
+        #     # "Encode only the categorical features in the dataframe. Select the best encoding "
+        #     # "method where possible. In general, the best encoding methods are as "
+        #     # "follows: For nominal, few unique categories, use one-hot encoding. "
+        #     # "For nominal, many unique categories, use target encoding or frequency "
+        #     # "encoding. For ordinal features, use ordinal or label encoding. "
+        #     # "Return the dataframe after encoding the categorical features."
+        # )
+
+        # st.write("##### LLM Prompt")
+        # st.write(prompt)
+
+        # # Generate LLM response
+        # llm_response = generate_llm_response(working_df, prompt)
+        
+        # # Display LLM response
+        # st.write("### LLM-Generated Description:")
+        # st.write(llm_response)
+
+        # categorical_cols = llm_response
+        # st.write(categorical_cols)
+        # st.write("##### Listing categorical cols")
+        # for col in categorical_cols:
+        #     st.write(col)
+
+        # st.write(working_df)
+
+        exit()
 
         working_df = encode_categorical(working_df)
 
