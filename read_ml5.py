@@ -25,6 +25,7 @@ from pandasai.llm import GoogleGemini
 from pandasai import SmartDataframe
 import os
 from dotenv import load_dotenv
+from operator import itemgetter
 
 load_dotenv()  # Load env vars from .env file
 
@@ -98,28 +99,28 @@ def show_dtypes_and_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
     return missing_data_df
 
 @st.cache_data
-def encode_categorical(df: pd.DataFrame) -> pd.DataFrame:
+def encode_categorical(df: pd.DataFrame, column: str) -> pd.DataFrame:
     """Encodes categorical columns using OneHotEncoder
 
     Uses OneHotEncoder to encode categorical data into 1s and 0s, represented in
     sparse data. Returns a new Dataframe that has original non-categorical data
-    and new encoded categorical data.
+    and new encoded categorical data. Designed to encode one column at a time.
 
     Args:
         df: Input Dataframe with categorical data columns.
+        column: Name of column in dataframe that is to be encoded
     
     Returns:
         New dataframe with encoded categorical data.
     """
     encoder = OneHotEncoder(sparse_output=True)
 
-    categorical_columns = df.select_dtypes(include=['object', 'category']).columns
-    encoded_arr = encoder.fit_transform(df[categorical_columns])
+    encoded_arr = encoder.fit_transform(df[column].values.reshape(-1,1))
     encoded_categorical_df = pd.DataFrame.sparse.from_spmatrix(
         encoded_arr,
-        columns=encoder.get_feature_names_out(categorical_columns)
+        columns=encoder.get_feature_names_out([column])
     )
-    non_categorical_df = df.drop(categorical_columns, axis=1)
+    non_categorical_df = df.drop(column, axis=1)
 
     encoded_df = pd.concat([non_categorical_df, encoded_categorical_df], axis=1)
 
@@ -368,29 +369,22 @@ def main():
         st.subheader("Step 2: Encoding Categorical Variables")
 
         # df_string = working_df.to_string()
-        # # Define categorical features
-        # prompt = (
-        #     "Identify and encode all categorical columns in the DataFrame, including those "
-        #     "with 'ID' in their names or that represent identifiers (even if stored as float64). "
-        #     "For columns with fewer unique values than 10% of the total rows, assume they are categorical. "
-        #     f"Apply 'One Hot' encoding. "
-        #     # "Encode only the categorical features in the dataframe. Select the best encoding "
-        #     # "method where possible. In general, the best encoding methods are as "
-        #     # "follows: For nominal, few unique categories, use one-hot encoding. "
-        #     # "For nominal, many unique categories, use target encoding or frequency "
-        #     # "encoding. For ordinal features, use ordinal or label encoding. "
-        #     # "Return the dataframe after encoding the categorical features."
-        # )
+        # Define categorical features
+        prompt = (
+            "Identify all categorical columns in the DataFrame and return them as "
+            "a JSON list. The response should be in the format: "
+            "{\"categorical_columns\": [\"column1\", \"column2\"]}."
+        )
 
-        # st.write("##### LLM Prompt")
-        # st.write(prompt)
+        st.write("##### LLM Prompt")
+        st.write(prompt)
 
-        # # Generate LLM response
-        # llm_response = generate_llm_response(working_df, prompt)
+        # Generate LLM response
+        llm_response = generate_llm_response(working_df, prompt)
         
-        # # Display LLM response
-        # st.write("### LLM-Generated Description:")
-        # st.write(llm_response)
+        # Display LLM response
+        st.write("### LLM-Generated Description:")
+        st.write(llm_response)
 
         # categorical_cols = llm_response
         # st.write(categorical_cols)
@@ -398,11 +392,36 @@ def main():
         # for col in categorical_cols:
         #     st.write(col)
 
+        st.write("End of LLM-Generated answer")
         # st.write(working_df)
 
-        exit()
+        categorical_cols = llm_response["categorical_columns"].to_list()
+        print("Number of categorical cols: ", len(categorical_cols))
+        for ind, obj in enumerate(categorical_cols):
+            while working_df[categorical_cols[ind]].nunique() > (0.3 * len(working_df)):
+                categorical_cols.remove(categorical_cols[ind])
+            print("Index: ", ind)
+            print(categorical_cols[ind])
+            print(working_df[categorical_cols[ind]].nunique())
 
-        working_df = encode_categorical(working_df)
+            categorical_cols[ind] = (categorical_cols[ind], working_df[categorical_cols[ind]].nunique())
+
+        print("Number of categorical cols: ", len(categorical_cols))
+
+        for pair in categorical_cols:
+            print(pair)
+            print("Type of nunique(): ", type(pair[1]))
+
+        sorted_categorical_cols = sorted(
+            categorical_cols,
+            key=itemgetter(1),
+            reverse=False
+        )
+
+        # HealthFacility, Governorate, HealthFacilityType, Gender, PatientAllergy, Diagnosis
+        for x in range(5):
+            working_df = encode_categorical(working_df, sorted_categorical_cols[x][0])
+
 
         st.write("Categorical variables encoded.")
         st.write("Non-zero elements: ", working_df.notna().sum().sum())
@@ -414,6 +433,7 @@ def main():
         st.write("Top", top_n, "rows:")
         st.dataframe(top_values)
 
+        exit()
         # 8.3 Feature Scaling
         st.subheader("Step 3: Scaling Features")
 
