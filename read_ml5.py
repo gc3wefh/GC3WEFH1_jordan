@@ -1,5 +1,8 @@
 """Machine Learning Readiness Assessment on CSV files using Streamlit.
 
+File: read_ml5.py
+Author: Alex Nguyen
+
 Displays current properties of a CSV dataset and performs various functions on
 given CSV file in order to make it Machine Learning ready, giving the option to 
 download the resulting transformed CSV file. Current implementation includes:
@@ -26,6 +29,7 @@ from pandasai import SmartDataframe
 import os
 from dotenv import load_dotenv
 from operator import itemgetter
+import time
 
 load_dotenv()  # Load env vars from .env file
 
@@ -213,6 +217,8 @@ def describe_numerical(df: pd.DataFrame) -> pd.DataFrame:
     return df[numerical_cols].describe()
 
 def main():
+
+    start = time.perf_counter()
     # Define a Streamlit app
     st.title("ML Readiness App with Key Feature Insights")
 
@@ -311,40 +317,42 @@ def main():
         st.subheader("Step-by-Step Data Preparation")
 
         ## 8.1 Handling Missing Values
-        st.subheader("Step 1: Handling Missing Values")
+        st.subheader("Step 1: Handling Missing Values SKIPPED")
 
-        # Combine the relationship analysis with distribution, spikes, and outliers in the prompt
-        prompt = (
-            "Numerical features contain quantitative values that represent some "
-            "form of measurement, count, or value and can be mathematically manipulated. "
-            "They commonly include integers and floating-point numbers. Some "
-            "examples are continous data, like age, height, and temperature, or "
-            "discrete data, like number of items sold or scores."
-            "Categorical features contain values that represent categories or "
-            "groups and often have no intrinsic mathematical meaning. They are "
-            "usually represented as strings or integers that act as labels. They "
-            "can be nominal, meaning categories without a natural order (e.g., "
-            "gender, city name) or ordinal, meaning categories with a meaningful "
-            "order but no fixed distance between categories (e.g., education "
-            "levels like \"High School\", \"Bachelor's\", \"Master's\". Examples "
-            "include binary data, like \"yes\"/\"no\" or \"true\"/\"false\", or "
-            "multiclass categories, such as car brands, types of cuisine, or countries.)"
-            "Impute missing values for numerical features with the mean and "
-            "impute missing values for categorical features with the most frequent value."
-            "Return the dataframe after imputing missing values."
-        )
+        # # Combine the relationship analysis with distribution, spikes, and outliers in the prompt
+        # prompt = (
+        #     "Numerical features contain quantitative values that represent some "
+        #     "form of measurement, count, or value and can be mathematically manipulated. "
+        #     "They commonly include integers and floating-point numbers. Some "
+        #     "examples are continous data, like age, height, and temperature, or "
+        #     "discrete data, like number of items sold or scores."
+        #     "Categorical features contain values that represent categories or "
+        #     "groups and often have no intrinsic mathematical meaning. They are "
+        #     "usually represented as strings or integers that act as labels. They "
+        #     "can be nominal, meaning categories without a natural order (e.g., "
+        #     "gender, city name) or ordinal, meaning categories with a meaningful "
+        #     "order but no fixed distance between categories (e.g., education "
+        #     "levels like \"High School\", \"Bachelor's\", \"Master's\". Examples "
+        #     "include binary data, like \"yes\"/\"no\" or \"true\"/\"false\", or "
+        #     "multiclass categories, such as car brands, types of cuisine, or countries.)"
+        #     "Impute missing values for numerical features with the mean and "
+        #     "impute missing values for categorical features with the most frequent value."
+        #     "Return the dataframe after imputing missing values."
+        # )
 
-        st.write("##### LLM Prompt")
-        st.write(prompt)
+        # st.write("##### LLM Prompt")
+        # st.write(prompt)
 
-        st.write('##### Dataframe before LLM')
-        st.write(working_df)
-        # Generate LLM response
-        llm_response = generate_llm_response(working_df, prompt)
+        # st.write('##### Dataframe before LLM')
+        # st.write(working_df)
+        # # Generate LLM response
+        # llm_response = generate_llm_response(working_df, prompt)
         
-        # Display LLM response
-        st.write("### LLM-Generated Description:")
-        st.write(llm_response)
+        # # Display LLM response
+        # st.write("### LLM-Generated Description:")
+        # st.write(llm_response)
+
+        # END SKIP
 
         # ### Impute missing values for numerical features with mean
         # numerical_features = working_df.select_dtypes(
@@ -371,9 +379,20 @@ def main():
         # df_string = working_df.to_string()
         # Define categorical features
         prompt = (
-            "Identify all categorical columns in the DataFrame and return them as "
-            "a JSON list. The response should be in the format: "
-            "{\"categorical_columns\": [\"column1\", \"column2\"]}."
+            """
+            Numerical data is a type of data that expresses information in the 
+            form of numbers. Categorical data is a type of data that is used to 
+            group information with similar characteristics. IDs are not 
+            considered numerical data nor categorical data. Identify all 
+            columns containing categorical data and all columns containing 
+            numerical data in the dataframe and return them as a JSON list. The 
+            response should be in the format of: 
+            { 
+                "categorical_columns": ["column1", "column2", ... , "columnx"], 
+                "numerical_columns": ["column1", "column2", ... , "columnx"]
+            } 
+            and should not include anything else.
+            """
         )
 
         st.write("##### LLM Prompt")
@@ -395,7 +414,40 @@ def main():
         st.write("End of LLM-Generated answer")
         # st.write(working_df)
 
+        # Record categorical columns
         categorical_cols = llm_response["categorical_columns"].to_list()
+
+        # # Define numerical features
+        # prompt = (
+        #     "Identify all numerical columns in the "
+        #     "DataFrame and return them as a JSON list. The response should be in"
+        #     " the format: "
+        #     "{"
+        #         "\"numerical_columns\": [\"column1\", \"column2\"],"
+        #     "}."
+        # )
+
+        # st.write("##### LLM Prompt")
+        # st.write(prompt)
+
+        # # Generate LLM response
+        # llm_response = generate_llm_response(working_df, prompt)
+        
+        # # Display LLM response
+        # st.write("### LLM-Generated Description:")
+        # st.write(llm_response)
+
+        # # categorical_cols = llm_response
+        # # st.write(categorical_cols)
+        # # st.write("##### Listing categorical cols")
+        # # for col in categorical_cols:
+        # #     st.write(col)
+
+        # st.write("End of LLM-Generated answer")
+
+        # Record numerical columns
+        numerical_cols = llm_response["numerical_columns"].to_list()
+
         print("Number of categorical cols: ", len(categorical_cols))
         for ind, obj in enumerate(categorical_cols):
             while working_df[categorical_cols[ind]].nunique() > (0.3 * len(working_df)):
@@ -412,13 +464,16 @@ def main():
             print(pair)
             print("Type of nunique(): ", type(pair[1]))
 
+        # Record numerical columns
+
+
+        # Sort categorical columns by number of unique entries
         sorted_categorical_cols = sorted(
             categorical_cols,
             key=itemgetter(1),
             reverse=False
         )
 
-        # HealthFacility, Governorate, HealthFacilityType, Gender, PatientAllergy, Diagnosis
         for x in range(5):
             working_df = encode_categorical(working_df, sorted_categorical_cols[x][0])
 
@@ -433,7 +488,11 @@ def main():
         st.write("Top", top_n, "rows:")
         st.dataframe(top_values)
 
+        end = time.perf_counter()
+        runtime = end - start
+        print(f"Runtime: {runtime // 60} minutes {runtime % 60} seconds")
         exit()
+
         # 8.3 Feature Scaling
         st.subheader("Step 3: Scaling Features")
 
@@ -452,6 +511,9 @@ def main():
         top_values = get_top_n_rows(working_df, top_n)
         st.write("Top", top_n, "rows:")
         st.dataframe(top_values)
+
+        
+        exit()
 
         # 8.4 Removing Low Variance Features
         st.subheader("Step 4: Removing Low Variance Features")
