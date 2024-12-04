@@ -173,7 +173,7 @@ def get_top_n_rows(df: pd.DataFrame, top_n : int) -> pd.DataFrame:
 
      # Identify sparse columns
     sparse_cols = [
-        col for col in df.columns if isinstance(df[col].dtype, pd.SparseDtype)
+        col for col in df_topN.columns if isinstance(df_topN[col].dtype, pd.SparseDtype)
     ]
 
     # Convert each sparse column to dense and explicitly cast to float or int
@@ -206,13 +206,13 @@ def scaler_transform(df: pd.DataFrame) -> pd.DataFrame:
     scaler = StandardScaler()
     df_scaled = df.copy()
     # Get non-categorical columns
-    non_categorical_cols = [col for col in df.columns if not isinstance(df[col].dtype, pd.SparseDtype)]
-    df_scaled[non_categorical_cols] = scaler.fit_transform(df_scaled[non_categorical_cols])
+    numerical_columns = ["AgeatDiagnosis"]
+    df_scaled[numerical_columns] = scaler.fit_transform(df_scaled[numerical_columns])
     return df_scaled
 
 def describe_numerical(df: pd.DataFrame) -> pd.DataFrame:
     print("Printing df", df)
-    numerical_cols = [col for col in df.columns if not isinstance(df[col].dtype, pd.SparseDtype)]
+    numerical_cols = ["AgeatDiagnosis"]
     print("Printing df[numericals_cols]", df[numerical_cols])
     return df[numerical_cols].describe()
 
@@ -378,44 +378,46 @@ def main():
 
         # df_string = working_df.to_string()
         # Define categorical features
-        prompt = (
-            """
-            Numerical data is a type of data that expresses information in the 
-            form of numbers. Categorical data is a type of data that is used to 
-            group information with similar characteristics. IDs are not 
-            considered numerical data nor categorical data. Identify all 
-            columns containing categorical data and all columns containing 
-            numerical data in the dataframe and return them as a JSON list. The 
-            response should be in the format of: 
-            { 
-                "categorical_columns": ["column1", "column2", ... , "columnx"], 
-                "numerical_columns": ["column1", "column2", ... , "columnx"]
-            } 
-            and should not include anything else.
-            """
-        )
+        # prompt = (
+        #     """
+        #     Numerical data is a type of data that expresses information in the 
+        #     form of numbers. Categorical data is a type of data that is used to 
+        #     group information with similar characteristics. IDs are not 
+        #     considered numerical data nor categorical data. Identify all 
+        #     columns containing categorical data and all columns containing 
+        #     numerical data in the dataframe and return them as a JSON list. The 
+        #     response should be in the format of: 
+        #     { 
+        #         "categorical_columns": ["column1", "column2", ... , "columnx"], 
+        #         "numerical_columns": ["column1", "column2", ... , "columnx"]
+        #     } 
+        #     and should not include anything else.
+        #     """
+        # )
 
-        st.write("##### LLM Prompt")
-        st.write(prompt)
+        # st.write("##### LLM Prompt")
+        # st.write(prompt)
 
-        # Generate LLM response
-        llm_response = generate_llm_response(working_df, prompt)
+        # # Generate LLM response
+        # llm_response = generate_llm_response(working_df, prompt)
         
-        # Display LLM response
-        st.write("### LLM-Generated Description:")
-        st.write(llm_response)
+        # # Display LLM response
+        # st.write("### LLM-Generated Description:")
+        # st.write(llm_response)
 
-        # categorical_cols = llm_response
-        # st.write(categorical_cols)
-        # st.write("##### Listing categorical cols")
-        # for col in categorical_cols:
-        #     st.write(col)
+        # # categorical_cols = llm_response
+        # # st.write(categorical_cols)
+        # # st.write("##### Listing categorical cols")
+        # # for col in categorical_cols:
+        # #     st.write(col)
 
-        st.write("End of LLM-Generated answer")
+        # st.write("End of LLM-Generated answer")
         # st.write(working_df)
 
         # Record categorical columns
-        categorical_cols = llm_response["categorical_columns"].to_list()
+        # categorical_cols = llm_response["categorical_columns"].to_list()
+        # HARD CODED
+        categorical_cols = ["Gender", "Governorate", "Diagnosis", "DateTimeDiagnosisEntered", "PatientAllergy", "HealthFacilityType", "HealthFacility"]
 
         # # Define numerical features
         # prompt = (
@@ -446,7 +448,9 @@ def main():
         # st.write("End of LLM-Generated answer")
 
         # Record numerical columns
-        numerical_cols = llm_response["numerical_columns"].to_list()
+        # numerical_cols = llm_response["numerical_columns"].to_list()
+        # HARD CODED
+        numerical_cols = ["AgeatDiagnosis"]
 
         print("Number of categorical cols: ", len(categorical_cols))
         for ind, obj in enumerate(categorical_cols):
@@ -488,61 +492,78 @@ def main():
         st.write("Top", top_n, "rows:")
         st.dataframe(top_values)
 
-        end = time.perf_counter()
-        runtime = end - start
-        print(f"Runtime: {runtime // 60} minutes {runtime % 60} seconds")
-        exit()
-
         # 8.3 Feature Scaling
         st.subheader("Step 3: Scaling Features")
 
         # Before scaling, show the mean and standard deviation of numerical columns
-        st.write("Feature Statistics Before Scaling:")
+        st.write("Numerical Feature Statistics Before Scaling:")
         print(working_df.dtypes)
         st.write(describe_numerical(working_df))
 
         working_df = scaler_transform(working_df)
 
         # After scaling, show the mean and standard deviation
-        st.write("Feature Statistics After Scaling (Mean ~0, Std Dev ~1):")
+        st.write("Numerical Feature Statistics After Scaling (Mean ~0, Std Dev ~1):")
         st.write(describe_numerical(working_df))
 
-        st.write("Features scaled. Here's the updated dataset:")
+        st.write("Features scaled to standard. Here's the updated dataset:")
         top_values = get_top_n_rows(working_df, top_n)
         st.write("Top", top_n, "rows:")
         st.dataframe(top_values)
 
-        
-        exit()
-
         # 8.4 Removing Low Variance Features
         st.subheader("Step 4: Removing Low Variance Features")
-        selector = VarianceThreshold(threshold=0.1)
-        df_high_variance = selector.fit_transform(working_df)
 
-        # Select the features with high variance
-        selected_features = working_df.columns[selector.get_support()]
-        working_df = pd.DataFrame(df_high_variance, columns=selected_features)
+        encoded_categorical_columns = [col for col in working_df.columns if isinstance(working_df[col].dtype, pd.SparseDtype)]
+
+        print(working_df.dtypes)
+        print(encoded_categorical_columns)
+
+        ignored_cols = [col for col in working_df.columns if (col not in encoded_categorical_columns and col not in numerical_cols)]
+        print("ignored columns: ", ignored_cols)
+
+        selector = VarianceThreshold(threshold=0.1)
+
+        # Apply variance selector to numeric data only
+        numeric_data = working_df[numerical_cols]
+        numeric_high_variance = selector.fit_transform(numeric_data)
+        numeric_high_variance_df = pd.DataFrame(
+            numeric_high_variance,
+            columns=numeric_data.columns[selector.get_support()]
+        )
+        # Recombine with categorical data
+        df_high_variance = pd.concat([working_df[ignored_cols], numeric_high_variance_df, working_df[encoded_categorical_columns]], axis=1)
 
         st.write("Low variance features removed. Here's the updated dataset:")
-        st.write(working_df.head())
+        top_values = get_top_n_rows(df_high_variance, top_n)
+        st.write("Top", top_n, "rows:")
+        st.dataframe(top_values)
 
         # 8.5 Handling Outliers
         st.subheader("Step 5: Handling Outliers")
-        z_scores = np.abs(stats.zscore(working_df))
+
+        # Calculate Z scores of numerical columns and taking the absolute value of them, storing into a dataframe
+        z_scores = np.abs(stats.zscore(df_high_variance[numerical_cols]))
+
+        st.write("Z score: ", z_scores)
 
         st.write("Z-scores of Features (outliers detected if Z > 3):")
-        st.write(pd.DataFrame(z_scores, columns=working_df.columns).head())
+        st.write(pd.DataFrame(z_scores, columns=numerical_cols).head())
 
-        # Remove outliers based on Z-score threshold
-        working_df = working_df[(z_scores < 3).all(axis=1)]
+        numerical_data_no_outliers = df_high_variance[numerical_cols][(z_scores < 3).all(axis=1)]
 
-        st.write(f"Outliers removed; new dataset shape: {working_df.shape}")
-        st.write(working_df.head())
+        df_final = pd.concat([df_high_variance[ignored_cols], numerical_data_no_outliers, df_high_variance[encoded_categorical_columns]], axis=1)
+
+        st.write(f"Outliers removed; new dataset shape: {df_final.shape}")
+        top_values = get_top_n_rows(df_final, top_n)
+        st.write("Top", top_n, "rows:")
+        st.dataframe(top_values)
 
         # 9. Final prepared dataset
         st.subheader("Final Prepared Dataset")
-        st.write(working_df.head())
+        top_values = get_top_n_rows(df_final, top_n)
+        st.write("Top", top_n, "rows:")
+        st.dataframe(top_values)
 
         # Save the prepared dataset to a CSV file
         st.download_button(
@@ -551,6 +572,10 @@ def main():
             file_name="prepared_dataset.csv",
             mime="text/csv"
         )
+
+        end = time.perf_counter()
+        runtime = end - start
+        print(f"Runtime: {runtime // 60} minutes {runtime % 60} seconds")
 
 if __name__ == '__main__':
     main() 
