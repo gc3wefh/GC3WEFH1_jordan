@@ -207,7 +207,8 @@ def scaler_transform(df: pd.DataFrame) -> pd.DataFrame:
     df_scaled = df.copy()
     # Get non-categorical columns
     numerical_columns = ["AgeatDiagnosis"]
-    df_scaled[numerical_columns] = scaler.fit_transform(df_scaled[numerical_columns])
+    for col in numerical_columns:
+        df_scaled[f"{col}_scaled"] = scaler.fit_transform(df_scaled[[col]])
     return df_scaled
 
 def describe_numerical(df: pd.DataFrame) -> pd.DataFrame:
@@ -321,23 +322,6 @@ def main():
 
         # # Combine the relationship analysis with distribution, spikes, and outliers in the prompt
         # prompt = (
-        #     "Numerical features contain quantitative values that represent some "
-        #     "form of measurement, count, or value and can be mathematically manipulated. "
-        #     "They commonly include integers and floating-point numbers. Some "
-        #     "examples are continous data, like age, height, and temperature, or "
-        #     "discrete data, like number of items sold or scores."
-        #     "Categorical features contain values that represent categories or "
-        #     "groups and often have no intrinsic mathematical meaning. They are "
-        #     "usually represented as strings or integers that act as labels. They "
-        #     "can be nominal, meaning categories without a natural order (e.g., "
-        #     "gender, city name) or ordinal, meaning categories with a meaningful "
-        #     "order but no fixed distance between categories (e.g., education "
-        #     "levels like \"High School\", \"Bachelor's\", \"Master's\". Examples "
-        #     "include binary data, like \"yes\"/\"no\" or \"true\"/\"false\", or "
-        #     "multiclass categories, such as car brands, types of cuisine, or countries.)"
-        #     "Impute missing values for numerical features with the mean and "
-        #     "impute missing values for categorical features with the most frequent value."
-        #     "Return the dataframe after imputing missing values."
         # )
 
         # st.write("##### LLM Prompt")
@@ -354,24 +338,24 @@ def main():
 
         # END SKIP
 
-        # ### Impute missing values for numerical features with mean
-        # numerical_features = working_df.select_dtypes(
-        #     include=[np.number]
-        # ).columns.tolist()
-        # imputer_num = SimpleImputer(strategy='mean')
-        # working_df[numerical_features] = imputer_num.fit_transform(working_df[numerical_features])
+        ### Impute missing values for numerical features with mean
+        # HARD CODED
+        numerical_cols = ["AgeatDiagnosis"]
+        imputer_num = SimpleImputer(strategy='mean')
+        working_df[numerical_cols] = imputer_num.fit_transform(working_df[numerical_cols])
 
-        # ### Impute missing values for categorical features with the most frequent value
-        # categorical_columns = working_df.select_dtypes(include=['object', 'category']).columns
-        # categorical_features = categorical_columns.tolist()
-        # imputer_cat = SimpleImputer(strategy='most_frequent')
-        # working_df[categorical_features] = imputer_cat.fit_transform(working_df[categorical_features])
+        ### Impute missing values for categorical features with the most frequent value
+        # HARD CODED
+        categorical_cols = ["Gender", "Governorate", "Diagnosis", "DateTimeDiagnosisEntered", "PatientAllergy", "HealthFacilityType", "HealthFacility"]
 
-        # st.write(
-        #     "Missing values handled. Here's a preview of the updated dataset "
-        #     f"{working_df.shape}:"
-        # )
-        # st.write(working_df.head())
+        imputer_cat = SimpleImputer(strategy='most_frequent')
+        working_df[categorical_cols] = imputer_cat.fit_transform(working_df[categorical_cols])
+
+        st.write(
+            "Missing values handled. Here's a preview of the updated dataset "
+            f"{working_df.shape}:"
+        )
+        st.write(working_df.head())
 
         # 8.2 Encoding Categorical Variables
         st.subheader("Step 2: Encoding Categorical Variables")
@@ -416,9 +400,7 @@ def main():
 
         # Record categorical columns
         # categorical_cols = llm_response["categorical_columns"].to_list()
-        # HARD CODED
-        categorical_cols = ["Gender", "Governorate", "Diagnosis", "DateTimeDiagnosisEntered", "PatientAllergy", "HealthFacilityType", "HealthFacility"]
-
+        
         # # Define numerical features
         # prompt = (
         #     "Identify all numerical columns in the "
@@ -449,8 +431,6 @@ def main():
 
         # Record numerical columns
         # numerical_cols = llm_response["numerical_columns"].to_list()
-        # HARD CODED
-        numerical_cols = ["AgeatDiagnosis"]
 
         print("Number of categorical cols: ", len(categorical_cols))
         for ind, obj in enumerate(categorical_cols):
@@ -543,7 +523,7 @@ def main():
         st.subheader("Step 5: Handling Outliers")
 
         # Calculate Z scores of numerical columns and taking the absolute value of them, storing into a dataframe
-        z_scores = np.abs(stats.zscore(df_high_variance[numerical_cols]))
+        z_scores = np.abs((df_high_variance[numerical_cols]).apply(stats.zscore))
 
         st.write("Z score: ", z_scores)
 
