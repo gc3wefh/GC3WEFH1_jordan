@@ -74,10 +74,10 @@ def downcast_numeric_columns(df : pd.DataFrame) -> pd.DataFrame:
     downcasted_df: pd.DataFrame = df.copy()  # Deepcopy as Dataframe is mutable
     # Downcast integer columns
     for col in downcasted_df.select_dtypes(include=['int']).columns:
-        df[col] = pd.to_numeric(df[col], downcast='integer')
+        downcasted_df[col] = pd.to_numeric(df[col], downcast='integer')
     # Downcast float columns
     for col in downcasted_df.select_dtypes(include=['float']).columns:
-        df[col] = pd.to_numeric(df[col], downcast='float')
+        downcasted_df[col] = pd.to_numeric(df[col], downcast='float')
     return downcasted_df
 
 def show_dtypes_and_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
