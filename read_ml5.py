@@ -24,8 +24,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.feature_selection import VarianceThreshold
 from scipy import stats
 import tempfile
-from pandasai.llm import GoogleGemini
-from pandasai import SmartDataframe
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
 from operator import itemgetter
@@ -34,15 +33,34 @@ import time
 load_dotenv()  # Load env vars from .env file
 
 # Set the api key from environment variable
-gemini_api_key = os.environ.get('gemini')  # Make sure your API key is stored as an environment variable
+api_key = os.environ.get('openai')  # Make sure your API key is stored as an environment variable
+print(api_key)
+
+client = OpenAI(
+    api_key=api_key,
+)
 
 # LLM Integration
-llm = GoogleGemini(api_key=gemini_api_key)
+#llm = GoogleGemini(api_key=gemini_api_key)
+#llm = OpenAI(api_token=api_key)
 
-def generate_llm_response(dataFrame, prompt):
-    pandas_agent = SmartDataframe(dataFrame, config={"llm": llm})
-    answer = pandas_agent.chat(prompt)
-    return answer
+def generate_llm_response(df: pd.DataFrame, prompt: str):
+    #pandas_agent = SmartDataframe(dataFrame, config={"llm": llm})
+    #answer = pandas_agent.chat(prompt)
+    #pandas_agent = Agent(llm, conversational=False)
+    df_string = df.head().to_string()
+    query = f"The following is a dataset:\n{df_string}\n\n{prompt}"
+    try:
+        chat_completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant for analyzing data."},
+                {"role": "user", "content": query}
+            ]
+        )
+        return chat_completion['choices'][0]['message']['content']
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 @st.cache_data
 def load_data(file):
@@ -218,6 +236,7 @@ def describe_numerical(df: pd.DataFrame) -> pd.DataFrame:
     return df[numerical_cols].describe()
 
 def main():
+    print("Printing API Key: ", api_key)
 
     start = time.perf_counter()
     # Define a Streamlit app
@@ -255,6 +274,44 @@ def main():
 
         # Apply the downcast function to the DataFrame to save memory
         st.write("Same data after downcasting numerical types to save memory:")
+
+        # Identify numerical and categorical columns in the prompt
+        prompt = (
+            """
+            Numerical data is a type of data that expresses information in the 
+            form of numbers. Categorical data is a type of data that is used to 
+            group information with similar characteristics. IDs are not 
+            considered numerical data nor categorical data. Identify all 
+            columns containing categorical data and all columns containing 
+            numerical data in the dataframe and return them as a JSON list. The 
+            response should be in the format of: 
+            { 
+                "categorical_columns": ["column1", "column2", ... , "columnx"], 
+                "numerical_columns": ["column1", "column2", ... , "columnx"]
+            } 
+            and should not include anything else.
+            """
+        )
+
+        st.write("##### LLM Prompt")
+        st.write(prompt)
+
+        # st.write('##### Dataframe before LLM')
+        # st.write(working_df)
+        # Generate LLM response
+        llm_response = generate_llm_response(df, prompt)
+        
+        # Display LLM response
+        st.write("### LLM-Generated Description:")
+        st.write(llm_response)
+
+        numerical_cols = llm_response["numerical_columns"]
+        categorical_cols = llm_response["categorical_columns"]
+
+        st.write(f"Numerical columns: {numerical_cols}")
+        st.write(f"Categorical columns: {categorical_cols}")
+
+        exit()
 
         downcasted_df = downcast_numeric_columns(df)
         missing_data_df = show_dtypes_and_missing_vals(downcasted_df)
