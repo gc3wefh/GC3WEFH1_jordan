@@ -29,38 +29,51 @@ import os
 from dotenv import load_dotenv
 from operator import itemgetter
 import time
+import google.generativeai as genai
+import json
+
 
 load_dotenv()  # Load env vars from .env file
 
 # Set the api key from environment variable
-api_key = os.environ.get('openai')  # Make sure your API key is stored as an environment variable
+api_key = os.environ.get('gemini')  # Make sure your API key is stored as an environment variable
 print(api_key)
 
-client = OpenAI(
-    api_key=api_key,
-)
+# client = OpenAI(
+#     api_key=api_key,
+# )
 
 # LLM Integration
-#llm = GoogleGemini(api_key=gemini_api_key)
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel("gemini-1.5-flash")
 #llm = OpenAI(api_token=api_key)
 
 def generate_llm_response(df: pd.DataFrame, prompt: str):
-    #pandas_agent = SmartDataframe(dataFrame, config={"llm": llm})
+    df_json = df.to_json()
+    p = f"""
+        The following is a dataset in JSON format:\n
+        {df_json}\n
+        {prompt}
+        """
+    print("Printing prompt...\n")
+    print(p)
+    response = model.generate_content(p)
+    return response.text
     #answer = pandas_agent.chat(prompt)
     #pandas_agent = Agent(llm, conversational=False)
-    df_string = df.head().to_string()
-    query = f"The following is a dataset:\n{df_string}\n\n{prompt}"
-    try:
-        chat_completion = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant for analyzing data."},
-                {"role": "user", "content": query}
-            ]
-        )
-        return chat_completion['choices'][0]['message']['content']
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    # df_string = df.head().to_string()
+    # query = f"The following is a dataset:\n{df_string}\n\n{prompt}"
+    # try:
+    #     chat_completion = client.chat.completions.create(
+    #         model="gpt-4",
+    #         messages=[
+    #             {"role": "system", "content": "You are a helpful assistant for analyzing data."},
+    #             {"role": "user", "content": query}
+    #         ]
+    #     )
+    #     return chat_completion['choices'][0]['message']['content']
+    # except Exception as e:
+    #     print(f"An error occurred: {e}")
 
 @st.cache_data
 def load_data(file):
@@ -116,7 +129,8 @@ def show_dtypes_and_missing_vals(df: pd.DataFrame) -> pd.DataFrame:
     missing_data_df = pd.DataFrame({
         'Data Type': df.dtypes,
         'Missing Values': missing_values,
-        'Missing Percentage (%)': (missing_values / len(df)) * 100
+        'Missing Percentage (%)': (missing_values / len(df)) * 100,
+        'General Info': df.info()
     })
     return missing_data_df
 
@@ -272,18 +286,18 @@ def main():
             cmap='Reds', subset=["Missing Values"]
         ))
 
-        # Apply the downcast function to the DataFrame to save memory
-        st.write("Same data after downcasting numerical types to save memory:")
+        st.write("Dataframe in JSON format:")
+        st.write(df.head().to_json())
 
         # Identify numerical and categorical columns in the prompt
         prompt = (
             """
             Numerical data is a type of data that expresses information in the 
             form of numbers. Categorical data is a type of data that is used to 
-            group information with similar characteristics. IDs are not 
-            considered numerical data nor categorical data. Identify all 
+            group information with similar characteristics. Do not include 
+            columns that are considered IDs. Identify all 
             columns containing categorical data and all columns containing 
-            numerical data in the dataframe and return them as a JSON list. The 
+            numerical data in the dataframe and return them as a JSON string. Your 
             response should be in the format of: 
             { 
                 "categorical_columns": ["column1", "column2", ... , "columnx"], 
@@ -292,36 +306,28 @@ def main():
             and should not include anything else.
             """
         )
-
         st.write("##### LLM Prompt")
         st.write(prompt)
 
         # st.write('##### Dataframe before LLM')
         # st.write(working_df)
         # Generate LLM response
-        llm_response = generate_llm_response(df, prompt)
+        llm_response = generate_llm_response(df.head(), prompt)
         
         # Display LLM response
         st.write("### LLM-Generated Description:")
         st.write(llm_response)
+        print(llm_response.strip("```json\n").strip("```"))
 
-        numerical_cols = llm_response["numerical_columns"]
-        categorical_cols = llm_response["categorical_columns"]
+        response_json = json.loads(llm_response.strip("```json\n").strip("```"))
+
+        numerical_cols = response_json["numerical_columns"]
+        categorical_cols = response_json["categorical_columns"]
 
         st.write(f"Numerical columns: {numerical_cols}")
         st.write(f"Categorical columns: {categorical_cols}")
 
-        exit()
-
-        downcasted_df = downcast_numeric_columns(df)
-        missing_data_df = show_dtypes_and_missing_vals(downcasted_df)
-
-        # Show missing values in a more detailed and clear way
-        st.dataframe(missing_data_df.style.format(
-            {"Missing Percentage (%)": "{:.2f}"}
-        ).background_gradient(
-            cmap='Reds', subset=["Missing Values"]
-        ))
+        
 
         # 4. Statistical Summary
         st.subheader("Statistical Summary of Numerical Features")
@@ -369,13 +375,13 @@ def main():
                     )
 
         # Initialize the working DataFrame for modifications
-        working_df = downcasted_df.copy()
+        working_df = df.copy()
 
         # 8. Data Preparation Steps
         st.subheader("Step-by-Step Data Preparation")
 
         ## 8.1 Handling Missing Values
-        st.subheader("Step 1: Handling Missing Values SKIPPED")
+        st.subheader("Step 1: Handling Missing Values")
 
         # # Combine the relationship analysis with distribution, spikes, and outliers in the prompt
         # prompt = (
@@ -397,7 +403,7 @@ def main():
 
         ### Impute missing values for numerical features with mean
         # HARD CODED
-        numerical_cols = ["AgeatDiagnosis"]
+        #numerical_cols = ["AgeatDiagnosis"]
         imputer_num = SimpleImputer(strategy='mean')
         working_df[numerical_cols] = imputer_num.fit_transform(working_df[numerical_cols])
 
@@ -413,6 +419,16 @@ def main():
             f"{working_df.shape}:"
         )
         st.write(working_df.head())
+
+        downcasted_df = downcast_numeric_columns(df)
+        missing_data_df = show_dtypes_and_missing_vals(downcasted_df)
+
+        # Show missing values in a more detailed and clear way
+        st.dataframe(missing_data_df.style.format(
+            {"Missing Percentage (%)": "{:.2f}"}
+        ).background_gradient(
+            cmap='Reds', subset=["Missing Values"]
+        ))
 
         # 8.2 Encoding Categorical Variables
         st.subheader("Step 2: Encoding Categorical Variables")
