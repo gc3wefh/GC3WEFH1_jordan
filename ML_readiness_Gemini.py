@@ -1,6 +1,6 @@
 """Machine Learning Readiness Assessment on CSV files using Streamlit.
 
-File: read_ml5.py
+File: ML_readiness_Gemini.py
 Author: Alex Nguyen
 
 Displays current properties of a CSV dataset and performs various functions on
