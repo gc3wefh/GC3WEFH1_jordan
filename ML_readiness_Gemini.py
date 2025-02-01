@@ -33,47 +33,50 @@ import google.generativeai as genai
 import json
 
 
-load_dotenv()  # Load env vars from .env file
+load_dotenv(override=True)  # Load env vars from .env file
 
 # Set the api key from environment variable
-api_key = os.environ.get('gemini')  # Make sure your API key is stored as an environment variable
+api_key = os.environ.get('openai')  # Make sure your API key is stored as an environment variable
 print(api_key)
 
-# client = OpenAI(
-#     api_key=api_key,
-# )
+client = OpenAI(
+    api_key=api_key,
+)
 
 # LLM Integration
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-1.5-flash")
+#genai.configure(api_key=api_key)
+#model = genai.GenerativeModel("gemini-1.5-flash")
 #llm = OpenAI(api_token=api_key)
 
 def generate_llm_response(df: pd.DataFrame, prompt: str):
-    df_json = df.to_json()
-    p = f"""
-        The following is a dataset in JSON format:\n
-        {df_json}\n
-        {prompt}
-        """
-    print("Printing prompt...\n")
-    print(p)
-    response = model.generate_content(p)
-    return response.text
+    # df_json = df.to_json()
+    # p = f"""
+    #     The following is a dataset in JSON format:\n
+    #     {df_json}\n
+    #     {prompt}
+    #     """
+    # print("Printing prompt...\n")
+    # print(p)
+    # response = model.generate_content(p)
+    # return response.text
     #answer = pandas_agent.chat(prompt)
-    #pandas_agent = Agent(llm, conversational=False)
-    # df_string = df.head().to_string()
-    # query = f"The following is a dataset:\n{df_string}\n\n{prompt}"
-    # try:
-    #     chat_completion = client.chat.completions.create(
-    #         model="gpt-4",
-    #         messages=[
-    #             {"role": "system", "content": "You are a helpful assistant for analyzing data."},
-    #             {"role": "user", "content": query}
-    #         ]
-    #     )
-    #     return chat_completion['choices'][0]['message']['content']
-    # except Exception as e:
-    #     print(f"An error occurred: {e}")
+    #pandas_agent = PandasAI(llm, conversational=False)
+    df_json = df.to_json()
+    query = f"""The following is a dataset in JSON format:\n
+            {df_json}\n\n
+            {prompt}
+            """
+    try:
+        chat_completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant for analyzing data."},
+                {"role": "user", "content": query}
+            ]
+        )
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 @st.cache_data
 def load_data(file):
@@ -223,7 +226,7 @@ def get_top_n_rows(df: pd.DataFrame, top_n : int) -> pd.DataFrame:
 
     return df_topN
 
-def scaler_transform(df: pd.DataFrame) -> pd.DataFrame:
+def scaler_transform(df: pd.DataFrame, numerical_columns: list[str]) -> pd.DataFrame:
     """Scales a DataFrame using StandardScaler
     
     A DataFrame that may have mixed sparse and regular columns is scaled.
@@ -238,14 +241,13 @@ def scaler_transform(df: pd.DataFrame) -> pd.DataFrame:
     scaler = StandardScaler()
     df_scaled = df.copy()
     # Get non-categorical columns
-    numerical_columns = ["AgeatDiagnosis"]
     for col in numerical_columns:
         df_scaled[f"{col}_scaled"] = scaler.fit_transform(df_scaled[[col]])
     return df_scaled
 
-def describe_numerical(df: pd.DataFrame) -> pd.DataFrame:
+def describe_numerical(df: pd.DataFrame, numerical_cols: list[str]) -> pd.DataFrame:
     print("Printing df", df)
-    numerical_cols = ["AgeatDiagnosis"]
+    #numerical_cols = ["AgeatDiagnosis"]
     print("Printing df[numericals_cols]", df[numerical_cols])
     return df[numerical_cols].describe()
 
@@ -263,6 +265,7 @@ def main():
     if uploaded_file is None:
         st.write("No data to show. Upload a file to generate data.")
     else:
+        st.write("Loading dataset...")
         # 1. Load the dataset
         df = load_data(uploaded_file)
         st.success(f"Dataset '{uploaded_file.name}' uploaded successfully.")
@@ -292,18 +295,19 @@ def main():
         # Identify numerical and categorical columns in the prompt
         prompt = (
             """
-            Numerical data is a type of data that expresses information in the 
-            form of numbers. Categorical data is a type of data that is used to 
-            group information with similar characteristics. Do not include 
-            columns that are considered IDs. Identify all 
-            columns containing categorical data and all columns containing 
-            numerical data in the dataframe and return them as a JSON string. Your 
-            response should be in the format of: 
-            { 
-                "categorical_columns": ["column1", "column2", ... , "columnx"], 
-                "numerical_columns": ["column1", "column2", ... , "columnx"]
-            } 
-            and should not include anything else.
+            You are tasked with identifying the column types of a given DataFrame. Analyze the provided DataFrame schema and classify each column as either numerical or categorical, excluding any ID-related columns.
+
+            Classification rules:
+
+                Columns with purely numerical data (including continuous or sparse types) should be labeled as numerical.
+                Columns with non-numerical data or discrete categories should be labeled as categorical.
+                Exclude columns that are clearly ID-related (e.g., PatientID, DiagnosisID, HealthFacilityID, or similar naming patterns containing "ID" or implying unique identifiers).
+                Return the result as a strict JSON object with the following structure:
+                { 
+                    "categorical_columns": ["column1", "column2", ... , "columnx"], 
+                    "numerical_columns": ["column1", "column2", ... , "columnx"]
+                } 
+                Return only the JSON object without any explanations or commentary.
             """
         )
         st.write("##### LLM Prompt")
@@ -319,6 +323,7 @@ def main():
         st.write(llm_response)
         print(llm_response.strip("```json\n").strip("```"))
 
+        st.write("End of LLM-Generated Description")
         response_json = json.loads(llm_response.strip("```json\n").strip("```"))
 
         numerical_cols = response_json["numerical_columns"]
@@ -409,7 +414,7 @@ def main():
 
         ### Impute missing values for categorical features with the most frequent value
         # HARD CODED
-        categorical_cols = ["Gender", "Governorate", "Diagnosis", "DateTimeDiagnosisEntered", "PatientAllergy", "HealthFacilityType", "HealthFacility"]
+        #categorical_cols = ["Gender", "Governorate", "Diagnosis", "DateTimeDiagnosisEntered", "PatientAllergy", "HealthFacilityType", "HealthFacility"]
 
         imputer_cat = SimpleImputer(strategy='most_frequent')
         working_df[categorical_cols] = imputer_cat.fit_transform(working_df[categorical_cols])
@@ -551,13 +556,13 @@ def main():
         # Before scaling, show the mean and standard deviation of numerical columns
         st.write("Numerical Feature Statistics Before Scaling:")
         print(working_df.dtypes)
-        st.write(describe_numerical(working_df))
+        st.write(describe_numerical(working_df, numerical_cols))
 
-        working_df = scaler_transform(working_df)
+        working_df = scaler_transform(working_df, numerical_cols)
 
         # After scaling, show the mean and standard deviation
         st.write("Numerical Feature Statistics After Scaling (Mean ~0, Std Dev ~1):")
-        st.write(describe_numerical(working_df))
+        st.write(describe_numerical(working_df, numerical_cols))
 
         st.write("Features scaled to standard. Here's the updated dataset:")
         top_values = get_top_n_rows(working_df, top_n)
