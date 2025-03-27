@@ -9,7 +9,7 @@ import os
 
 # LLM integration (Google Gemini setup)
 gemini_api_key = os.environ.get('gemini')  # Make sure your API key is stored as an environment variable
-llm = GoogleGemini(api_key=gemini_api_key)
+llm = GoogleGemini(api_key=gemini_api_key, model = "models/gemini-1.5-pro")
 
 def generate_llm_response(dataFrame, prompt):
     pandas_agent = SmartDataframe(dataFrame, config={"llm": llm})
