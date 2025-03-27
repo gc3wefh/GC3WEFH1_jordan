@@ -20599,3 +20599,155 @@ If you are asked to plot a chart, use "matplotlib" for charts, save as png.
 Generate python code and return full updated code:
 2025-03-27 20:08:01 [INFO] Executing Step 3: CodeGenerator
 2025-03-27 20:08:01 [ERROR] Pipeline failed on step 3: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-03-27 20:21:08 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Practice of backyard pig production If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are in order.If you receive an error, please print the error in full. Here is the user input : i
+2025-03-27 20:21:08 [INFO] Running PandasAI with google-gemini LLM...
+2025-03-27 20:21:08 [INFO] Prompt ID: 76813534-780d-4877-a1e3-48e38b7f23e2
+2025-03-27 20:21:08 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-03-27 20:21:08 [INFO] Executing Step 0: ValidatePipelineInput
+2025-03-27 20:21:08 [INFO] Executing Step 1: CacheLookup
+2025-03-27 20:21:08 [INFO] Executing Step 2: PromptGeneration
+2025-03-27 20:21:08 [INFO] Using prompt: dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 388
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '6498536'
+      - '40950'
+      - '4654220'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - COUNTRY
+      - COUNTRY
+      - COUNTRY
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - LBR
+      - MLI
+      - HRV
+    - name: Time
+      type: object
+      samples:
+      - '2016'
+      - '2016'
+      - '2022'
+    - name: value
+      type: object
+      samples:
+      - Present
+      - No data
+      - Absent
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Practice of backyard pig production If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are in order.If you receive an error, please print the error in full. Here is the user input : i
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-03-27 20:21:08 [INFO] Executing Step 3: CodeGenerator
+2025-03-27 20:21:08 [ERROR] Pipeline failed on step 3: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-03-27 20:21:17 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Practice of backyard pig production If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are in order.If you receive an error, please print the error in full. Here is the user input : I
+2025-03-27 20:21:17 [INFO] Running PandasAI with google-gemini LLM...
+2025-03-27 20:21:17 [INFO] Prompt ID: 17eebe35-9a43-4c8f-9b2e-256150b8122a
+2025-03-27 20:21:17 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-03-27 20:21:17 [INFO] Executing Step 0: ValidatePipelineInput
+2025-03-27 20:21:17 [INFO] Executing Step 1: CacheLookup
+2025-03-27 20:21:17 [INFO] Executing Step 2: PromptGeneration
+2025-03-27 20:21:17 [INFO] Using prompt: dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 388
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '7423860'
+      - '791229'
+      - '3396409'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - COUNTRY
+      - COUNTRY
+      - COUNTRY
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - AFG
+      - AND
+      - ZWE
+    - name: Time
+      type: object
+      samples:
+      - '2022'
+      - '2022'
+      - '2016'
+    - name: value
+      type: object
+      samples:
+      - Present
+      - No data
+      - Limited
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Practice of backyard pig production If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are in order.If you receive an error, please print the error in full. Here is the user input : I
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-03-27 20:21:17 [INFO] Executing Step 3: CodeGenerator
+2025-03-27 20:21:17 [ERROR] Pipeline failed on step 3: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
