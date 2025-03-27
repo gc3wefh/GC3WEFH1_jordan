@@ -36,7 +36,7 @@ class StreamLitResponse(ResponseParser):
                st.write(result['value'])
                return
 
-gemini_api_key = "AIzaSyCQNr5hHK--o0YyyVy_2yFM5yWn5WOZNIg"     # os.environ['gemini']
+gemini_api_key = "AIzaSyDCoRH--ygkdwvsZP4xcflowaoc74_n9kU"     # os.environ['gemini']
 
 def generateResponse(dataFrame,prompt):
         llm = GoogleGemini(api_key=gemini_api_key, model = "models/gemini-1.5-pro")
