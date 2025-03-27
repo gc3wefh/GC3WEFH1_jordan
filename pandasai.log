@@ -20523,3 +20523,206 @@ result = {'type': 'string', 'value': f'The mean of TOTPOP_CY is {mean:.2f}, the 
 2024-09-11 18:02:28 [INFO] Executing Step 7: ResultValidation
 2024-09-11 18:02:28 [INFO] Answer: {'type': 'string', 'value': 'The mean of TOTPOP_CY is 10996790.00, the standard deviation is nan, the variance is nan, and the skewness is nan.'}
 2024-09-11 18:02:28 [INFO] Executing Step 8: ResultParsing
+2025-03-27 17:25:31 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Awareness activities If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are in order.If you receive an error, please print the error in full. Here is the user input : dd
+2025-03-27 17:25:31 [INFO] Running PandasAI with google-gemini LLM...
+2025-03-27 17:25:31 [INFO] Prompt ID: 49bc8796-4baf-493d-9299-a3e2fe6e45eb
+2025-03-27 17:25:31 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-03-27 17:25:31 [INFO] Executing Step 0: ValidatePipelineInput
+2025-03-27 17:25:31 [INFO] Executing Step 1: CacheLookup
+2025-03-27 17:25:31 [INFO] Executing Step 2: PromptGeneration
+2025-03-27 17:25:31 [INFO] Using prompt: dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 2134
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '5838408'
+      - '119439'
+      - '5081063'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - COUNTRY
+      - COUNTRY
+      - COUNTRY
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - ESP
+      - TKM
+      - FSM
+    - name: Time
+      type: object
+      samples:
+      - '2016'
+      - '2016'
+      - '2016'
+    - name: value
+      type: object
+      samples:
+      - 'No'
+      - 'Yes'
+      - No data
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Awareness activities If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are in order.If you receive an error, please print the error in full. Here is the user input : dd
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-03-27 17:25:31 [INFO] Executing Step 3: CodeGenerator
+2025-03-27 17:25:35 [INFO] Prompt used:
+            
+dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 2134
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '5838408'
+      - '119439'
+      - '5081063'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - COUNTRY
+      - COUNTRY
+      - COUNTRY
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - ESP
+      - TKM
+      - FSM
+    - name: Time
+      type: object
+      samples:
+      - '2016'
+      - '2016'
+      - '2016'
+    - name: value
+      type: object
+      samples:
+      - 'No'
+      - 'Yes'
+      - No data
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Awareness activities If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are in order.If you receive an error, please print the error in full. Here is the user input : dd
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+            
+2025-03-27 17:25:35 [INFO] Code generated:
+            ```
+            # TODO: import the required dependencies
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Write code here
+try:
+    df = dfs[0]
+
+    # Group by Spatial_Entity and count occurrences of 'Yes' in the 'value' column
+    awareness_counts = df[df['value'] == 'Yes'].groupby('Spatial_Entity')['value'].count()
+
+    # Create the bar chart
+    plt.figure(figsize=(10, 6))  # Adjust figure size as needed
+    awareness_counts.plot(kind='bar')
+    plt.title('Awareness Activities by Country (Spatial_Entity)')
+    plt.xlabel('Country (Spatial_Entity)')
+    plt.ylabel('Count of "Yes"')
+    plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
+    plt.tight_layout()  # Adjust layout to prevent labels from overlapping
+    plt.savefig('temp_chart.png')
+
+    # Declare result var:
+    result = {"type": "plot", "value": "temp_chart.png"}
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    result = {"type": "string", "value": f"An error occurred: {e}"}
+            ```
+            
+2025-03-27 17:25:35 [INFO] Executing Step 4: CachePopulation
+2025-03-27 17:25:35 [INFO] Executing Step 5: CodeCleaning
+2025-03-27 17:25:35 [INFO] Saving charts to /workspaces/GC3WEFH1_jordan/exports/charts/temp_chart.png
+2025-03-27 17:25:35 [INFO] 
+Code running:
+```
+try:
+    df = dfs[0]
+    awareness_counts = df[df['value'] == 'Yes'].groupby('Spatial_Entity')['value'].count()
+    plt.figure(figsize=(10, 6))
+    awareness_counts.plot(kind='bar')
+    plt.title('Awareness Activities by Country (Spatial_Entity)')
+    plt.xlabel('Country (Spatial_Entity)')
+    plt.ylabel('Count of "Yes"')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.savefig('/workspaces/GC3WEFH1_jordan/exports/charts/temp_chart.png')
+    result = {'type': 'plot', 'value': '/workspaces/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+except Exception as e:
+    print(f'An error occurred: {e}')
+    result = {'type': 'string', 'value': f'An error occurred: {e}'}
+        ```
+2025-03-27 17:25:35 [INFO] Executing Step 6: CodeExecution
+2025-03-27 17:25:36 [INFO] generated new fontManager
+2025-03-27 17:25:37 [INFO] Executing Step 7: ResultValidation
+2025-03-27 17:25:37 [INFO] Answer: {'type': 'plot', 'value': '/workspaces/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+2025-03-27 17:25:37 [INFO] Executing Step 8: ResultParsing

@@ -36,10 +36,10 @@ class StreamLitResponse(ResponseParser):
                st.write(result['value'])
                return
 
-gemini_api_key = os.environ['gemini']
+gemini_api_key = "AIzaSyCQNr5hHK--o0YyyVy_2yFM5yWn5WOZNIg" # os.environ['gemini']
 
 def generateResponse(dataFrame,prompt):
-        llm = GoogleGemini(api_key=gemini_api_key)
+        llm = GoogleGemini(api_key=gemini_api_key, model = "models/gemini-1.5-pro")
         pandas_agent = SmartDataframe(dataFrame,config={"llm":llm, "response_parser":StreamLitResponse, "custom_whitelisted_dependencies":["geopandas"]})
         answer = pandas_agent.chat(prompt)
         return answer
