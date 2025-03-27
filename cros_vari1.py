@@ -37,7 +37,7 @@ def load_geodataframe(path):
 
 # LLM integration (Google Gemini setup)
 gemini_api_key = os.environ.get('gemini')  # Ensure your API key is stored in the environment variables
-llm = GoogleGemini(api_key=gemini_api_key)
+llm = GoogleGemini(api_key=gemini_api_key, model = "models/gemini-1.5-pro")
 
 def generate_llm_response(dataFrame, prompt):
     pandas_agent = SmartDataframe(dataFrame, config={"llm": llm})
