@@ -1,4 +1,5 @@
 from pandasai.llm import GoogleGemini
+import google.generativeai as genai 
 import streamlit as st
 import os
 import pandas as pd
@@ -18,6 +19,40 @@ import io
 # conda wen_streamlit_env - no map
 # conda env map_wen_strmlit - with map
 
+from typing import Optional, Dict
+from pandasai.llm.base import LLM
+
+class GeminiFlashWrapper(LLM):
+    def __init__(self, model_name="models/gemini-2.0-flash", api_key=None):
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(model_name)
+
+    def chat(self, prompt: str) -> str:
+        # Combine the system instruction directly with the user prompt
+        full_prompt = (
+            "You are a Python coding assistant that only returns Python code using Pandas, Matplotlib, and basic types. "
+            "You must return FULL Python code that defines a variable named `result`, "
+            "with this format: {'type': '...', 'value': ...}. "
+            "Never return explanations, prompts, or templates. Just output working Python code.\n\n"
+            f"User prompt: {prompt}"
+        )
+
+        # Now send the full prompt to the model
+        response = self.model.generate_content([full_prompt])
+
+        return response.text if hasattr(response, 'text') else str(response)
+
+    def call(self, instruction: str, context: Optional[Dict] = None) -> str:
+        # This is the method PandasAI will actually call!
+        return self.chat(instruction)
+
+    @property
+    def type(self):
+        return "custom"
+
+    
+    
 st.set_page_config(layout="wide")
 
 if 'indicator_df' not in st.session_state:
@@ -38,13 +73,23 @@ class StreamLitResponse(ResponseParser):
 
 gemini_api_key = "AIzaSyDCoRH--ygkdwvsZP4xcflowaoc74_n9kU"     # os.environ['gemini']
 
-def generateResponse(dataFrame,prompt):
-        llm = GoogleGemini(api_key=gemini_api_key, model = "models/gemini-1.5-pro")
-        pandas_agent = SmartDataframe(dataFrame,config={"llm":llm, "response_parser":StreamLitResponse, "custom_whitelisted_dependencies":["geopandas"]})
-        answer = pandas_agent.chat(prompt)
-        return answer
+def generateResponse(dataFrame, prompt):
+    llm = GeminiFlashWrapper(api_key=gemini_api_key)
+    pandas_agent = SmartDataframe(
+        dataFrame,
+        config={
+            "llm": llm,
+            "response_parser": StreamLitResponse,
+            "custom_whitelisted_dependencies": ["geopandas"]
+        }
+    )
+    answer = pandas_agent.chat(prompt)
+    return answer
+
 
 st.write("# Jordan Health Data")
+
+
 # st.write("##### Engage in insightful conversations with your data through powerful visualizations, empowering you to uncover valuable insights and make informed decisions effortlessly!")
 
 with st.sidebar:
