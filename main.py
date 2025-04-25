@@ -900,7 +900,20 @@ with tab2:
                     schema_definitions += 'The column ' + x[1]['column_name'] + ' means ' + x[1]['column_definition'] + '.' +\
                     ' If a user asks about topics related to ' + x[1]['column_definition'] + ', use column ' +  x[1]['column_name'] + '.'
                 
-                
+
+        # # Plot the data
+        # user_input = st.text_input("Type your message here",placeholder="Ask me about your data")
+        # if user_input:
+        #         prompt_input = 'The SpatialDim has the country alpha-3 codes. The value' + \
+        #         ' column means ' + st.session_state.selected_dataset['dataset_name'] + ' If you are unsure which column to use as the data, use value. ' + \
+        #         'If you create a graph using the Time column, make sure the values are in order.' + \
+        #         (schema_definitions if schema_definitions != None else '') + \
+        #         'If you receive an error, please print the error in full. Here is the user input : ' + user_input
+        #         print(prompt_input)
+        #         answer = generateResponse(dataFrame=st.session_state.df,prompt=prompt_input)
+        #         st.write(answer)
+        #         # 'If the user wants to map a dataset, use the geopandas function explore. Here is an example: geopandas.explore(df)' + \
+
         def is_value_increasing(df):
             df_avg = df.groupby('Time')['value'].mean()
             return df_avg.iloc[-1] > df_avg.iloc[0]
