@@ -105,7 +105,7 @@ with st.sidebar:
         st.write('3. If you only want to work with Jordan data, choose the "Show Jordan Data only" checkbox to apply filtering.')
         st.write('4. Explore your data in the data information dropdown')
         st.write('5. Ask your data questions!')
-        st.write(' - Chart the average value over time')
+        st.write(' - Chart the value over time')
         st.write(' - Which year has the highest value')
         st.write(' - Is the average value increasing over time?')
 
