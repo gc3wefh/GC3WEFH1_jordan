@@ -29772,3 +29772,618 @@ except Exception as e:
 2025-04-29 23:54:51 [INFO] Executing Step 7: ResultValidation
 2025-04-29 23:54:51 [INFO] Answer: {'type': 'plot', 'value': '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
 2025-04-29 23:54:51 [INFO] Executing Step 8: ResultParsing
+2025-04-30 00:02:06 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Server training. If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: aa
+2025-04-30 00:02:06 [INFO] Running PandasAI with custom LLM...
+2025-04-30 00:02:06 [INFO] Prompt ID: a5c8ce9d-454d-4ff5-98b8-72c791d18d6a
+2025-04-30 00:02:06 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-04-30 00:02:06 [INFO] Executing Step 0: ValidatePipelineInput
+2025-04-30 00:02:06 [INFO] Executing Step 1: CacheLookup
+2025-04-30 00:02:07 [INFO] Executing Step 2: PromptGeneration
+2025-04-30 00:02:07 [INFO] Using prompt: dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 194
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '1422117'
+      - '299728'
+      - '5625095'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - COUNTRY
+      - COUNTRY
+      - COUNTRY
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - JAM
+      - COL
+      - BRB
+    - name: Time
+      type: object
+      samples:
+      - '2016'
+      - '2016'
+      - '2016'
+    - name: value
+      type: object
+      samples:
+      - 'Yes'
+      - No data
+      - 'No'
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Server training. If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: aa
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-04-30 00:02:07 [INFO] Executing Step 3: CodeGenerator
+2025-04-30 00:02:11 [INFO] Prompt used:
+            None
+            
+2025-04-30 00:02:11 [INFO] Code generated:
+            ```
+            # TODO: import the required dependencies
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Write code here
+try:
+    df = dfs[0].copy()
+
+    # Data Cleaning and Transformation
+    df = df.dropna(subset=['Spatial_Entity', 'value'])
+    df = df[df['Spatial_Entity'].notna()]
+    df = df[df['value'].notna()]
+
+    # Correctly handle the 'value' column
+    df['value'] = df['value'].astype(str)  # Ensure it's a string
+
+    # Convert time to numeric if possible and sort
+    try:
+        df['Time'] = pd.to_numeric(df['Time'], errors='coerce')
+        df = df.sort_values('Time')
+    except Exception as e:
+        result = {'type': 'string', 'value': f'Error converting Time to numeric: {e}'}
+        print(result['value'])
+        exit()
+
+    # Group by Year and sum the 'Yes' values (Server training)
+    df['Training_Available'] = df['value'].apply(lambda x: 1 if 'Yes' in x else 0)
+    training_by_year = df.groupby('Time')['Training_Available'].sum()
+
+    # Plotting the results
+    plt.figure(figsize=(10, 6))
+    plt.plot(training_by_year.index, training_by_year.values, marker='o', linestyle='-', color='skyblue')
+    plt.title('Server Training Availability Over Time')
+    plt.xlabel('Year')
+    plt.ylabel('Number of Countries with Server Training')
+    plt.grid(True)
+
+    # Save the plot
+    plot_file = 'server_training_plot.png'
+    plt.savefig(plot_file)
+    plt.close()
+
+    result = {'type': 'plot', 'value': plot_file}
+
+except Exception as e:
+    result = {'type': 'string', 'value': f'An error occurred: {str(e)}'}
+    print(result['value'])
+
+# Declare result var:
+# type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+            ```
+            
+2025-04-30 00:02:11 [INFO] Executing Step 4: CachePopulation
+2025-04-30 00:02:11 [INFO] Executing Step 5: CodeCleaning
+2025-04-30 00:02:11 [INFO] Saving charts to /Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png
+2025-04-30 00:02:11 [INFO] 
+Code running:
+```
+try:
+    df = dfs[0].copy()
+    df = df.dropna(subset=['Spatial_Entity', 'value'])
+    df = df[df['Spatial_Entity'].notna()]
+    df = df[df['value'].notna()]
+    df['value'] = df['value'].astype(str)
+    try:
+        df['Time'] = pd.to_numeric(df['Time'], errors='coerce')
+        df = df.sort_values('Time')
+    except Exception as e:
+        result = {'type': 'string', 'value': f'Error converting Time to numeric: {e}'}
+        print(result['value'])
+        exit()
+    df['Training_Available'] = df['value'].apply(lambda x: 1 if 'Yes' in x else 0)
+    training_by_year = df.groupby('Time')['Training_Available'].sum()
+    plt.figure(figsize=(10, 6))
+    plt.plot(training_by_year.index, training_by_year.values, marker='o', linestyle='-', color='skyblue')
+    plt.title('Server Training Availability Over Time')
+    plt.xlabel('Year')
+    plt.ylabel('Number of Countries with Server Training')
+    plt.grid(True)
+    plot_file = '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'
+    plt.savefig(plot_file)
+    plt.close()
+    result = {'type': 'plot', 'value': plot_file}
+except Exception as e:
+    result = {'type': 'string', 'value': f'An error occurred: {str(e)}'}
+    print(result['value'])
+        ```
+2025-04-30 00:02:11 [INFO] Executing Step 6: CodeExecution
+2025-04-30 00:02:11 [INFO] Executing Step 7: ResultValidation
+2025-04-30 00:02:11 [INFO] Answer: {'type': 'plot', 'value': '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+2025-04-30 00:02:11 [INFO] Executing Step 8: ResultParsing
+2025-04-30 00:02:18 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Server training. If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: aa
+2025-04-30 00:02:18 [INFO] Running PandasAI with custom LLM...
+2025-04-30 00:02:18 [INFO] Prompt ID: f7881409-f3d2-47d3-834d-8ca9fc7a3ead
+2025-04-30 00:02:18 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-04-30 00:02:18 [INFO] Executing Step 0: ValidatePipelineInput
+2025-04-30 00:02:18 [INFO] Executing Step 1: CacheLookup
+2025-04-30 00:02:18 [INFO] Using cached response
+2025-04-30 00:02:18 [INFO] Executing Step 2: PromptGeneration
+2025-04-30 00:02:18 [INFO] Executing Step 2: Skipping...
+2025-04-30 00:02:18 [INFO] Executing Step 3: CodeGenerator
+2025-04-30 00:02:18 [INFO] Executing Step 3: Skipping...
+2025-04-30 00:02:18 [INFO] Executing Step 4: CachePopulation
+2025-04-30 00:02:18 [INFO] Executing Step 4: Skipping...
+2025-04-30 00:02:18 [INFO] Executing Step 5: CodeCleaning
+2025-04-30 00:02:19 [INFO] Saving charts to /Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png
+2025-04-30 00:02:19 [INFO] 
+Code running:
+```
+try:
+    df = dfs[0].copy()
+    df = df.dropna(subset=['Spatial_Entity', 'value'])
+    df = df[df['Spatial_Entity'].notna()]
+    df = df[df['value'].notna()]
+    df['value'] = df['value'].astype(str)
+    try:
+        df['Time'] = pd.to_numeric(df['Time'], errors='coerce')
+        df = df.sort_values('Time')
+    except Exception as e:
+        result = {'type': 'string', 'value': f'Error converting Time to numeric: {e}'}
+        print(result['value'])
+        exit()
+    df['Training_Available'] = df['value'].apply(lambda x: 1 if 'Yes' in x else 0)
+    training_by_year = df.groupby('Time')['Training_Available'].sum()
+    plt.figure(figsize=(10, 6))
+    plt.plot(training_by_year.index, training_by_year.values, marker='o', linestyle='-', color='skyblue')
+    plt.title('Server Training Availability Over Time')
+    plt.xlabel('Year')
+    plt.ylabel('Number of Countries with Server Training')
+    plt.grid(True)
+    plot_file = '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'
+    plt.savefig(plot_file)
+    plt.close()
+    result = {'type': 'plot', 'value': plot_file}
+except Exception as e:
+    result = {'type': 'string', 'value': f'An error occurred: {str(e)}'}
+    print(result['value'])
+        ```
+2025-04-30 00:02:19 [INFO] Executing Step 6: CodeExecution
+2025-04-30 00:02:19 [INFO] Executing Step 7: ResultValidation
+2025-04-30 00:02:19 [INFO] Answer: {'type': 'plot', 'value': '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+2025-04-30 00:02:19 [INFO] Executing Step 8: ResultParsing
+2025-04-30 00:02:27 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Population using safely managed sanitation services (%). If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: aa
+2025-04-30 00:02:27 [INFO] Running PandasAI with custom LLM...
+2025-04-30 00:02:27 [INFO] Prompt ID: 6831bc69-02ad-4a0d-b7cf-3b94342fd563
+2025-04-30 00:02:27 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-04-30 00:02:27 [INFO] Executing Step 0: ValidatePipelineInput
+2025-04-30 00:02:27 [INFO] Executing Step 1: CacheLookup
+2025-04-30 00:02:27 [INFO] Executing Step 2: PromptGeneration
+2025-04-30 00:02:27 [INFO] Using prompt: dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 8072
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '260458'
+      - '4960971'
+      - '4149752'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - REGION
+      - COUNTRY
+      - GLOBAL
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - GHA
+      - VEN
+      - MYS
+    - name: Time
+      type: object
+      samples:
+      - '2019'
+      - '2002'
+      - '2009'
+    - name: value
+      type: float64
+      samples:
+      - 54.65646
+      - 44.07946
+      - .nan
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Population using safely managed sanitation services (%). If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: aa
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-04-30 00:02:27 [INFO] Executing Step 3: CodeGenerator
+2025-04-30 00:02:29 [INFO] Prompt used:
+            None
+            
+2025-04-30 00:02:29 [INFO] Code generated:
+            ```
+            import pandas as pd
+import matplotlib.pyplot as plt
+
+try:
+    df = dfs[0]
+
+    # Group by 'Spatial_Entity' and calculate the average 'value'
+    avg_value_by_country = df.groupby('Spatial_Entity')['value'].mean().sort_values(ascending=False)
+
+    # Create a bar chart
+    plt.figure(figsize=(12, 6))
+    avg_value_by_country.plot(kind='bar')
+    plt.title('Average Population with Safely Managed Sanitation Services (%) by Country')
+    plt.xlabel('Country (Alpha-3 Code)')
+    plt.ylabel('Average Value (%)')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    # Save the chart to a file
+    chart_filename = 'sanitation_by_country.png'
+    plt.savefig(chart_filename)
+    plt.close()
+
+    result = {'type': 'plot', 'value': chart_filename}
+
+except Exception as e:
+    result = {'type': 'string', 'value': str(e)}
+            ```
+            
+2025-04-30 00:02:29 [INFO] Executing Step 4: CachePopulation
+2025-04-30 00:02:29 [INFO] Executing Step 5: CodeCleaning
+2025-04-30 00:02:29 [INFO] Saving charts to /Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png
+2025-04-30 00:02:29 [INFO] 
+Code running:
+```
+try:
+    df = dfs[0]
+    avg_value_by_country = df.groupby('Spatial_Entity')['value'].mean().sort_values(ascending=False)
+    plt.figure(figsize=(12, 6))
+    avg_value_by_country.plot(kind='bar')
+    plt.title('Average Population with Safely Managed Sanitation Services (%) by Country')
+    plt.xlabel('Country (Alpha-3 Code)')
+    plt.ylabel('Average Value (%)')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    chart_filename = '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'
+    plt.savefig(chart_filename)
+    plt.close()
+    result = {'type': 'plot', 'value': chart_filename}
+except Exception as e:
+    result = {'type': 'string', 'value': str(e)}
+        ```
+2025-04-30 00:02:29 [INFO] Executing Step 6: CodeExecution
+2025-04-30 00:02:30 [INFO] Executing Step 7: ResultValidation
+2025-04-30 00:02:30 [INFO] Answer: {'type': 'plot', 'value': '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+2025-04-30 00:02:30 [INFO] Executing Step 8: ResultParsing
+2025-04-30 00:02:45 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Population using safely managed sanitation services (%). If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: Chart the value over time
+2025-04-30 00:02:45 [INFO] Running PandasAI with custom LLM...
+2025-04-30 00:02:45 [INFO] Prompt ID: 2d02df39-615f-431f-a08f-88696a43c1ed
+2025-04-30 00:02:45 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-04-30 00:02:45 [INFO] Executing Step 0: ValidatePipelineInput
+2025-04-30 00:02:45 [INFO] Executing Step 1: CacheLookup
+2025-04-30 00:02:45 [INFO] Using cached response
+2025-04-30 00:02:45 [INFO] Executing Step 2: PromptGeneration
+2025-04-30 00:02:45 [INFO] Executing Step 2: Skipping...
+2025-04-30 00:02:45 [INFO] Executing Step 3: CodeGenerator
+2025-04-30 00:02:45 [INFO] Executing Step 3: Skipping...
+2025-04-30 00:02:45 [INFO] Executing Step 4: CachePopulation
+2025-04-30 00:02:45 [INFO] Executing Step 4: Skipping...
+2025-04-30 00:02:45 [INFO] Executing Step 5: CodeCleaning
+2025-04-30 00:02:45 [INFO] Saving charts to /Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png
+2025-04-30 00:02:45 [INFO] 
+Code running:
+```
+try:
+    df = dfs[0]
+    df['Time'] = pd.to_numeric(df['Time'], errors='coerce')
+    df = df.dropna(subset=['Time', 'value'])
+    time_value = df.groupby('Time')['value'].mean()
+    time_value = time_value.sort_index()
+    plt.figure(figsize=(10, 6))
+    plt.plot(time_value.index, time_value.values, marker='o', linestyle='-')
+    plt.xlabel('Time')
+    plt.ylabel('Average Value')
+    plt.title('Average Value Over Time')
+    plt.grid(True)
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plot_filename = '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'
+    plt.savefig(plot_filename)
+    plt.close()
+    result = {'type': 'plot', 'value': plot_filename}
+except Exception as e:
+    result = {'type': 'string', 'value': str(e)}
+        ```
+2025-04-30 00:02:45 [INFO] Executing Step 6: CodeExecution
+2025-04-30 00:02:45 [INFO] Executing Step 7: ResultValidation
+2025-04-30 00:02:45 [INFO] Answer: {'type': 'plot', 'value': '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+2025-04-30 00:02:45 [INFO] Executing Step 8: ResultParsing
+2025-04-30 00:03:30 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Existence of evidence-based national guidelines/protocols/standards for the management of major NCDs through a primary care approach. If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: a
+2025-04-30 00:03:30 [INFO] Running PandasAI with custom LLM...
+2025-04-30 00:03:30 [INFO] Prompt ID: 009bbb90-6ff2-48d9-85cb-8b4035088dc9
+2025-04-30 00:03:30 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-04-30 00:03:30 [INFO] Executing Step 0: ValidatePipelineInput
+2025-04-30 00:03:30 [INFO] Executing Step 1: CacheLookup
+2025-04-30 00:03:30 [INFO] Executing Step 2: PromptGeneration
+2025-04-30 00:03:30 [INFO] Using prompt: dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 970
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '4310826'
+      - '8990640'
+      - '4587918'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - COUNTRY
+      - COUNTRY
+      - COUNTRY
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - VCT
+      - ALB
+      - SUR
+    - name: Time
+      type: object
+      samples:
+      - '2017'
+      - '2013'
+      - '2019'
+    - name: value
+      type: object
+      samples:
+      - 'Yes'
+      - No data received
+      - No response
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Existence of evidence-based national guidelines/protocols/standards for the management of major NCDs through a primary care approach. If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: a
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-04-30 00:03:30 [INFO] Executing Step 3: CodeGenerator
+2025-04-30 00:03:31 [ERROR] Pipeline failed on step 3: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+2025-04-30 00:03:52 [INFO] Question: The SpatialDim has the country alpha-3 codes. The value column means Proportion of ever-partnered women and girls aged 15–49 years subjected to physical and/or sexual violence by a current or former intimate partner in the previous 12 months. If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: a
+2025-04-30 00:03:52 [INFO] Running PandasAI with custom LLM...
+2025-04-30 00:03:52 [INFO] Prompt ID: 19332b0b-7c2b-4202-b6ef-fd5b2fec59ce
+2025-04-30 00:03:52 [INFO] Executing Pipeline: GenerateChatPipeline
+2025-04-30 00:03:52 [INFO] Executing Step 0: ValidatePipelineInput
+2025-04-30 00:03:52 [INFO] Executing Step 1: CacheLookup
+2025-04-30 00:03:52 [INFO] Executing Step 2: PromptGeneration
+2025-04-30 00:03:52 [INFO] Using prompt: dfs[0]:
+  name: null
+  description: null
+  type: pd.DataFrame
+  rows: 163
+  columns: 5
+  schema:
+    fields:
+    - name: Id
+      type: object
+      samples:
+      - '9263787'
+      - '4712998'
+      - '6723541'
+    - name: Spatial_Scope
+      type: object
+      samples:
+      - COUNTRY
+      - GLOBAL
+      - REGION
+    - name: Spatial_Entity
+      type: object
+      samples:
+      - CHE
+      - FSM
+      - LVA
+    - name: Time
+      type: object
+      samples:
+      - '2018'
+      - '2018'
+      - '2018'
+    - name: value
+      type: float64
+      samples:
+      - 15.0
+      - 12.0
+      - 5.0
+
+
+
+
+Update this initial code:
+```python
+# TODO: import the required dependencies
+import pandas as pd
+
+# Write code here
+
+# Declare result var: 
+type (possible values "string", "number", "dataframe", "plot"). Examples: { "type": "string", "value": f"The highest salary is {highest_salary}." } or { "type": "number", "value": 125 } or { "type": "dataframe", "value": pd.DataFrame({...}) } or { "type": "plot", "value": "temp_chart.png" }
+
+```
+
+
+
+### QUERY
+ The SpatialDim has the country alpha-3 codes. The value column means Proportion of ever-partnered women and girls aged 15–49 years subjected to physical and/or sexual violence by a current or former intimate partner in the previous 12 months. If you are unsure which column to use as the data, use value. If you create a graph using the Time column, make sure the values are sorted and use only one value type (either total or urban).  If you receive an error, please print the error in full. Here is the user input: a
+
+Variable `dfs: list[pd.DataFrame]` is already declared.
+
+At the end, declare "result" variable as a dictionary of type and value.
+
+If you are asked to plot a chart, use "matplotlib" for charts, save as png.
+
+
+Generate python code and return full updated code:
+2025-04-30 00:03:52 [INFO] Executing Step 3: CodeGenerator
+2025-04-30 00:03:54 [INFO] Prompt used:
+            None
+            
+2025-04-30 00:03:54 [INFO] Code generated:
+            ```
+            import pandas as pd
+import matplotlib.pyplot as plt
+
+try:
+    df = dfs[0]
+    df['Time'] = pd.to_numeric(df['Time'], errors='coerce')
+    df_country = df[df['Spatial_Scope'] == 'COUNTRY']
+    df_country = df_country.sort_values('Time')
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(df_country['Time'], df_country['value'], marker='o')
+    plt.xlabel('Time')
+    plt.ylabel('Proportion of women subjected to violence')
+    plt.title('Proportion of women subjected to violence over Time (COUNTRY)')
+    plt.grid(True)
+
+    plt.savefig("violence_over_time.png")
+
+    result = {'type': 'plot', 'value': "violence_over_time.png"}
+
+except Exception as e:
+    result = {'type': 'string', 'value': str(e)}
+            ```
+            
+2025-04-30 00:03:54 [INFO] Executing Step 4: CachePopulation
+2025-04-30 00:03:54 [INFO] Executing Step 5: CodeCleaning
+2025-04-30 00:03:54 [INFO] Saving charts to /Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png
+2025-04-30 00:03:54 [INFO] 
+Code running:
+```
+try:
+    df = dfs[0]
+    df['Time'] = pd.to_numeric(df['Time'], errors='coerce')
+    df_country = df[df['Spatial_Scope'] == 'COUNTRY']
+    df_country = df_country.sort_values('Time')
+    plt.figure(figsize=(10, 6))
+    plt.plot(df_country['Time'], df_country['value'], marker='o')
+    plt.xlabel('Time')
+    plt.ylabel('Proportion of women subjected to violence')
+    plt.title('Proportion of women subjected to violence over Time (COUNTRY)')
+    plt.grid(True)
+    plt.savefig('/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png')
+    result = {'type': 'plot', 'value': '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+except Exception as e:
+    result = {'type': 'string', 'value': str(e)}
+        ```
+2025-04-30 00:03:54 [INFO] Executing Step 6: CodeExecution
+2025-04-30 00:03:55 [INFO] Executing Step 7: ResultValidation
+2025-04-30 00:03:55 [INFO] Answer: {'type': 'plot', 'value': '/Users/aroaziz/Desktop/California/GC3WEFH/GC3WEFH1_jordan/exports/charts/temp_chart.png'}
+2025-04-30 00:03:55 [INFO] Executing Step 8: ResultParsing

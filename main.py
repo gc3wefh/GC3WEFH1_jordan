@@ -71,7 +71,7 @@ class StreamLitResponse(ResponseParser):
                st.write(result['value'])
                return
 
-gemini_api_key = "AIzaSyDCoRH--ygkdwvsZP4xcflowaoc74_n9kU"     # os.environ['gemini']
+gemini_api_key = os.environ['gemini']
 
 def generateResponse(dataFrame, prompt):
     llm = GeminiFlashWrapper(api_key=gemini_api_key)
