@@ -1,6 +1,7 @@
 from pandasai.llm import GoogleGemini
 import google.generativeai as genai 
 import streamlit as st
+from dotenv import load_dotenv
 import os
 import pandas as pd
 from pandasai import SmartDataframe
@@ -71,10 +72,14 @@ class StreamLitResponse(ResponseParser):
                st.write(result['value'])
                return
 
-gemini_api_key = os.environ['gemini']
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+
+if not GEMINI_API_KEY:
+    raise EnvironmentError("GEMINI_API_KEY not set. Did you load your .env file?")
+
 
 def generateResponse(dataFrame, prompt):
-    llm = GeminiFlashWrapper(api_key=gemini_api_key)
+    llm = GeminiFlashWrapper(api_key=GEMINI_API_KEY)
     pandas_agent = SmartDataframe(
         dataFrame,
         config={
