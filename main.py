@@ -72,11 +72,20 @@ class StreamLitResponse(ResponseParser):
                st.write(result['value'])
                return
 
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+# GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
-if not GEMINI_API_KEY:
-    raise EnvironmentError("GEMINI_API_KEY not set. Did you load your .env file?")
+# if not GEMINI_API_KEY:
+#     raise EnvironmentError("GEMINI_API_KEY not set. Did you load your .env file?")
 
+from dotenv import load_dotenv
+load_dotenv()  # enables local .env during dev
+
+# pull from Streamlit secrets first, then environment as fallback
+GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY or not GEMINI_API_KEY.strip():
+    st.error("GEMINI_API_KEY not found. Put it in .streamlit/secrets.toml or your environment.")
+    st.stop()
+GEMINI_API_KEY = GEMINI_API_KEY.strip()
 
 def generateResponse(dataFrame, prompt):
     llm = GeminiFlashWrapper(api_key=GEMINI_API_KEY)
