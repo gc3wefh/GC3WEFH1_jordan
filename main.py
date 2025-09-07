@@ -23,37 +23,8 @@ import io
 from typing import Optional, Dict
 from pandasai.llm.base import LLM
 
-# --- LOAD & VERIFY GEMINI KEY -----------------------------------------------
-from dotenv import load_dotenv
-load_dotenv()  # enables local .env during dev
-
-# Prefer Streamlit secrets; fallback to env var
-GEMINI_API_KEY = (st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
-
-# Quick visibility (no secret leakage)
-st.write("Gemini key present:", bool(GEMINI_API_KEY), "length:", len(GEMINI_API_KEY))
-
-if not GEMINI_API_KEY:
-    st.error("GEMINI_API_KEY not found. Add it to .streamlit/secrets.toml or your env.")
-    st.stop()
-
-# Optional sanity checks to catch common mistakes
-if not GEMINI_API_KEY.startswith("AIza"):
-    st.warning("This doesn't look like a Google AI Studio API key (usually starts with 'AIza').")
-
-import google.generativeai as genai
-genai.configure(api_key=GEMINI_API_KEY)
-try:
-    # minimal call to confirm the key is accepted by the API
-    _ = genai.GenerativeModel("gemini-2.0-flash").generate_content("ping")
-except Exception as e:
-    st.error(f"Gemini sanity check failed (key loaded but rejected): {e}")
-    st.stop()
-# ---------------------------------------------------------------------------
-
-
 class GeminiFlashWrapper(LLM):
-    def __init__(self, model_name="gemini-2.0-flash", api_key=None):
+    def __init__(self, model_name="models/gemini-2.0-flash", api_key=None):
         import google.generativeai as genai
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
@@ -101,20 +72,21 @@ class StreamLitResponse(ResponseParser):
                st.write(result['value'])
                return
 
-# GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
-# if not GEMINI_API_KEY:
-#     raise EnvironmentError("GEMINI_API_KEY not set. Did you load your .env file?")
+if not GEMINI_API_KEY:
+    raise EnvironmentError("GEMINI_API_KEY not set. Did you load your .env file?")
 
-from dotenv import load_dotenv
-load_dotenv()  # enables local .env during dev
 
-# pull from Streamlit secrets first, then environment as fallback
-GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY or not GEMINI_API_KEY.strip():
-    st.error("GEMINI_API_KEY not found. Put it in .streamlit/secrets.toml or your environment.")
-    st.stop()
-GEMINI_API_KEY = GEMINI_API_KEY.strip()
+# from dotenv import load_dotenv
+# load_dotenv()  # enables local .env during dev
+
+# # pull from Streamlit secrets first, then environment as fallback
+# GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+# if not GEMINI_API_KEY or not GEMINI_API_KEY.strip():
+#     st.error("GEMINI_API_KEY not found. Put it in .streamlit/secrets.toml or your environment.")
+#     st.stop()
+# GEMINI_API_KEY = GEMINI_API_KEY.strip()
 
 def generateResponse(dataFrame, prompt):
     llm = GeminiFlashWrapper(api_key=GEMINI_API_KEY)
