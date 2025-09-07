@@ -24,7 +24,7 @@ from typing import Optional, Dict
 from pandasai.llm.base import LLM
 
 class GeminiFlashWrapper(LLM):
-    def __init__(self, model_name="models/gemini-2.0-flash", api_key=None):
+    def __init__(self, model_name="gemini-2.0-flash", api_key=None):
         import google.generativeai as genai
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
